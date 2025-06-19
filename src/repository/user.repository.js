@@ -5,6 +5,7 @@ export default class UserRepository {
     async signup(userData) {
         try {
             const user = new UserModel(userData);
+            console.log("User Data = ", user);
             await user.save();
             return user;
         } catch (error) {
