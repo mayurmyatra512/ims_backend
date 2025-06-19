@@ -82,5 +82,5 @@ userSchema.methods.createPasswordResetToken = function () {
 };
 
 // Use a single collection name for all schemas
-const UserModel = mongoose.model("User", userSchema, "mainCollection");
+const UserModel = mongoose.model("User", userSchema, "users");
 export default UserModel;

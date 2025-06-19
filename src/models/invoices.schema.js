@@ -99,5 +99,5 @@ invoiceSchema.pre("updateMany", function (next) {
 
 
 // Ensure that the invoiceNumber is unique
-const InvoiceModel = mongoose.model("Invoice", invoiceSchema, "mainCollection");
+const InvoiceModel = mongoose.model("Invoice", invoiceSchema, "invoices");
 export default InvoiceModel;

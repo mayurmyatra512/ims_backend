@@ -37,5 +37,5 @@ const partySchema = new mongoose.Schema({
   },
 });
 
-const PartyModel = mongoose.model("Party", partySchema, "mainCollection");
+const PartyModel = mongoose.model("Party", partySchema, "parties");
 export default PartyModel;
