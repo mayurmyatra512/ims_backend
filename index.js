@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
-// import connectToMongoDB from './src/config/mongodbConnection.js';
-import connectToMongoDB from './src/config/mongodbConnection.original.js';
+import connectToMongoDB from './src/config/mongodbConnection.js';
+// import connectToMongoDB from './src/config/mongodbConnection.original.js';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import expressEjsLayouts from 'express-ejs-layouts';

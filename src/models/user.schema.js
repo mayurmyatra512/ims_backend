@@ -3,7 +3,7 @@ import validator from "validator";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { getDbConnection } from "../config/mongodbConnection.js ";
+// import { getDbConnection } from "../config/mongodbConnection.js ";
 
 const userSchema = new mongoose.Schema({
     name: {
