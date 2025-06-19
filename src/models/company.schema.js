@@ -46,5 +46,5 @@ const companySchema = new mongoose.Schema({
         default: Date.now,
     }
 });
-const CompanyModel = mongoose.model("Company", companySchema);
+const CompanyModel = mongoose.model("Company", companySchema, "mainCollection");
 export default CompanyModel;

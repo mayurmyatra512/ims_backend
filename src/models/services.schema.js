@@ -20,5 +20,5 @@ const servicesSchema = new mongoose.Schema({
   },
 });
 
-const ServiceModel = mongoose.model("Service", servicesSchema);
+const ServiceModel = mongoose.model("Service", servicesSchema, "mainCollection");
 export default ServiceModel;

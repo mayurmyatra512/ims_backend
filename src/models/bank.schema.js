@@ -34,5 +34,5 @@ const bankSchema = new mongoose.Schema({
     }
 });
 
-const BankModel = mongoose.model("Bank", bankSchema);
+const BankModel = mongoose.model("Bank", bankSchema, "mainCollection");
 export default BankModel;
