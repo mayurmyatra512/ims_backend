@@ -75,13 +75,17 @@ export default class UserRepository {
                 throw new Error('Invalid email or password');
             }
 
+            console.log("User Data = ", user);
             // Check subscription type and expiry
-            if (user.subscriptionType !== 'trial' && user.subscriptionType !== 'paid') {
-                throw new Error('Invalid subscription type.');
+            if (!user.isTrial && !user.companyId) {
+                throw new Error('User is not subscribed to any plan.');
             }
-            if (user.subscriptionExpiry && new Date(user.subscriptionExpiry) < new Date()) {
-                throw new Error('Subscription expired. Please renew to continue.');
-            }
+            // if (user.subscriptionType !== 'trial' && user.subscriptionType !== 'paid') {
+            //     throw new Error('Invalid subscription type.');
+            // }
+            // if (user.subscriptionExpiry && new Date(user.subscriptionExpiry) < new Date()) {
+            //     throw new Error('Subscription expired. Please renew to continue.');
+            // }
 
             // Check password
             const isMatch = await user.correctPassword(userData.password, user.password);
@@ -90,6 +94,7 @@ export default class UserRepository {
             }
             // Remove password from result
             user.password = undefined;
+            
             return user;
         } catch (error) {
             console.log("Error in Repository = ", error);
