@@ -13,10 +13,10 @@ import cors from 'cors';
 const app = express();
 const PORT = process.env.PORT || 3000;
 // Middleware
-const FRONTEND_ORIGIN = "http://localhost:5173";
+const FRONTEND_ORIGIN = "http://ims.oiwsoftwares.com/*";
 
 app.use(cors({
-  origin: FRONTEND_ORIGIN,
+  origin: {FRONTEND_ORIGIN, "*": true},
   credentials: true
 }));
 // app.use((req, res, next) => {
