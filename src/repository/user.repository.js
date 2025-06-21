@@ -4,6 +4,7 @@ import UserModel from "../models/user.schema.js";
 export default class UserRepository {
     async signup(userData) {
         try {
+            console.log("User Data = ", userData);
             const user = new UserModel(userData);
             console.log("User Data = ", user);
             await user.save();
