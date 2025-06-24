@@ -1,94 +1,71 @@
+import mongoose from "mongoose";
 import ServiceModel from "../models/services.schema.js";
 
+function getCompanyDb(companyId, companyName) {
+  let dbCompanyName = companyName ? companyName.toLowerCase().replace(/\s+/g, "") : "company";
+  const dbName = `${dbCompanyName}_${companyId}`;
+  return mongoose.connection.useDb(dbName, { useCache: true });
+}
+
 export default class ServiceRepository {
-  static async createService(serviceData) {
-    try {
-      const service = new ServiceModel(serviceData);
-      await service.save();
-      return service;
-    } catch (error) {
-        console.log("Error in Controller: ", error);
-      throw new Error(`Error creating service: ${error.message}`);
+  static getServiceModel(companyId, companyName) {
+    const companyDb = getCompanyDb(companyId, companyName);
+    if (!companyDb) throw new Error("Company database not found");
+    // Register the model if not already registered
+    if (!companyDb.modelNames().includes('Service')) {
+      companyDb.model('Service', ServiceModel.schema, 'services');
     }
+    return companyDb.model('Service');
   }
 
-  static async getServiceById(serviceId) {
-    try {
-      const service = await ServiceModel
-        .findById(serviceId)
-        .populate("parties");
-      if (!service) {
-        throw new Error(`Service with ID ${serviceId} not found`);
-      }
-      return service;
-    } catch (error) {
-      throw new Error(`Error fetching service: ${error.message}`);
-    }
+  static async createService(companyId, companyName, serviceData) {
+    const ServiceModel = this.getServiceModel(companyId, companyName);
+    if (!ServiceModel) throw new Error("Service collection not found for this company");
+    const service = new ServiceModel(serviceData);
+    await service.save();
+    return service;
   }
 
-  static async updateService(serviceId, serviceData) {
-    try {
-      const service = await ServiceModel.findByIdAndUpdate(
-        serviceId,
-        { ...serviceData, updatedAt: new Date() },
-        { new: true, runValidators: true }
-      );
-      if (!service) {
-        throw new Error(`Service with ID ${serviceId} not found`);
-      }
-      return service;
-    } catch (error) {
-      throw new Error(`Error updating service: ${error.message}`);
-    }
+  static async getServiceById(companyId, companyName, serviceId) {
+    const ServiceModel = this.getServiceModel(companyId, companyName);
+    if (!ServiceModel) throw new Error("Service collection not found for this company");
+    const service = await ServiceModel.findById(serviceId).populate("parties");
+    if (!service) throw new Error(`Service with ID ${serviceId} not found`);
+    return service;
   }
 
-  static async deleteService(serviceId) {
-    try {
-      const service = await ServiceModel.findByIdAndDelete(serviceId);
-      if (!service) {
-        throw new Error(`Service with ID ${serviceId} not found`);
-      }
-      return service;
-    } catch (error) {
-      throw new Error(`Error deleting service: ${error.message}`);
-    }
+  static async updateService(companyId, companyName, serviceId, serviceData) {
+    const ServiceModel = this.getServiceModel(companyId, companyName);
+    if (!ServiceModel) throw new Error("Service collection not found for this company");
+    const service = await ServiceModel.findByIdAndUpdate(
+      serviceId,
+      { ...serviceData, updatedAt: new Date() },
+      { new: true, runValidators: true }
+    );
+    if (!service) throw new Error(`Service with ID ${serviceId} not found`);
+    return service;
   }
 
-  static async getAllServices() {
-    try {
-      const services = await ServiceModel.find();
-      return services;
-    } catch (error) {
-      throw new Error(`Error fetching services: ${error.message}`);
-    }
+  static async deleteService(companyId, companyName, serviceId) {
+    const ServiceModel = this.getServiceModel(companyId, companyName);
+    if (!ServiceModel) throw new Error("Service collection not found for this company");
+    const service = await ServiceModel.findByIdAndDelete(serviceId);
+    if (!service) throw new Error(`Service with ID ${serviceId} not found`);
+    return service;
   }
 
-  static async getServiceByName(serviceName) {
-    try {
-      const service = await ServiceModel
-        .findOne({ serviceName })
-        // .populate("parties");
-      if (!service) {
-        throw new Error(`Service with name ${serviceName} not found`);
-      }
-      return service;
-    } catch (error) {
-      throw new Error(`Error fetching service by name: ${error.message}`);
-    }
+  static async getAllServices(companyId, companyName) {
+    const ServiceModel = this.getServiceModel(companyId, companyName);
+    if (!ServiceModel) throw new Error("Service collection not found for this company");
+    return await ServiceModel.find();
   }
 
-  static async getServiceByDescription(service) {
-    try {
-      const service = await ServiceModel
-        .findOne({ service: new RegExp(service, "i") })
-        .populate("parties");
-      if (!service) {
-        throw new Error(`Service with description ${service} not found`);
-      }
-      return service;
-    } catch (error) {
-      throw new Error(`Error fetching service by description: ${error.message}`);
-    }
+  static async getServiceByName(companyId, companyName, serviceName) {
+    const ServiceModel = this.getServiceModel(companyId, companyName);
+    if (!ServiceModel) throw new Error("Service collection not found for this company");
+    const service = await ServiceModel.findOne({ serviceName });
+    if (!service) throw new Error(`Service with name ${serviceName} not found`);
+    return service;
   }
 }
 

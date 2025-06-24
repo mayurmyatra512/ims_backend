@@ -9,7 +9,8 @@ function formatDateForInput(dateStr) {
     return `${d.getFullYear()}-${month}-${day}`;
 }
 
-export const createMailBody = async (recipient, subject, invoice) => {
+export const createMailBody = async (recipient, subject, invoice, customer, services, bank) => {
+  console.log('Service:', services);
     const sampleHtml = `
   <div className="bg-white p-6 rounded shadow-md max-w-3xl mx-auto">
         <h2 className="text-xl font-bold mb-4">Invoice</h2>
@@ -18,8 +19,8 @@ export const createMailBody = async (recipient, subject, invoice) => {
           <p><strong>Date:</strong> ${formatDateForInput(invoice.invoiceDate)}</p>
         </div>
         <div className="mb-4">
-          <p><strong>Name:</strong> ${invoice.partyId.partyName}</p>
-          <p><strong>Mobile:</strong> ${invoice.partyId.contactNumber}</p>
+          <p><strong>Name:</strong> ${customer.partyName}</p>
+          <p><strong>Mobile:</strong> ${customer.contactNumber}</p>
         </div>
 
         <table className="w-full text-left border border-gray-200">
@@ -32,7 +33,7 @@ export const createMailBody = async (recipient, subject, invoice) => {
             </tr>
           </thead>
           <tbody>
-            ${invoice.services.map((service, i) => `
+            ${services.map((service, i) => `
     <tr key="${i}">
       <td class="p-2 border">${service.particular || ''}</td>
       <td class="p-2 border">${service.serviceId?.serviceName || ''}</td>
@@ -46,20 +47,20 @@ export const createMailBody = async (recipient, subject, invoice) => {
             </tr>
             <tr>
               <td colSpan="3" className="p-2 border text-right">Paid</td>
-              <td className="p-2 border">₹${paidAmount}</td>
+              <td className="p-2 border">₹${invoice.paidAmount}</td>
             </tr>
             <tr className="font-bold">
               <td colSpan="3" className="p-2 border text-right">Pending</td>
-              <td className="p-2 border">₹${pendingAmount.toFixed(2)}</td>
+              <td className="p-2 border">₹${invoice.pendingAmount.toFixed(2)}</td>
             </tr>
             <tr className="font-bold">
-              <td colSpan="4" className="p-2 text-left">${bankDetails.accountNum}</td>
+              <td colSpan="4" className="p-2 text-left">${bank.accountNum}</td>
             </tr>
             <tr className="font-bold">
-              <td colSpan="4" className="p-2 text-left">${bankDetails.IFSC}</td>
+              <td colSpan="4" className="p-2 text-left">${bank.IFSC}</td>
             </tr>
             <tr className="font-bold">
-              <td colSpan="4" className="p-2 text-left">${bankDetails.Name}</td>
+              <td colSpan="4" className="p-2 text-left">${bank.Name}</td>
             </tr>
           </tbody>
         </table>

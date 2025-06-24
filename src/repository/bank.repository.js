@@ -1,10 +1,17 @@
 import BankModel from "../models/bank.schema.js";
+import CompanyModel from "../models/company.schema.js";
 
 export default class BankRepository {
   async createBank(bankData) {
     try {
       const bank = new BankModel(bankData);
       await bank.save();
+      // Update the corresponding company's bankId field
+      await CompanyModel.findByIdAndUpdate(
+        bank.companyId,
+        { bankId: bank._id },
+        { new: true }
+      );
       return bank;
     } catch (error) {
       console.log("Error in Repository: ", error);
@@ -58,6 +65,24 @@ export default class BankRepository {
       return banks;
     } catch (error) {
       throw new Error(`Error fetching banks: ${error.message}`);
+    }
+  }
+
+  async getBankByCompanyId(companyId) {
+    try {
+      // Find the company and get its bankId
+      const company = await CompanyModel.findById(companyId);
+      if (!company || !company.bankId) {
+        throw new Error(`No bank found for company with ID ${companyId}`);
+      }
+      // Find the bank by the bankId stored in the company
+      const bank = await BankModel.findById(company.bankId);
+      if (!bank) {
+        throw new Error(`Bank with ID ${company.bankId} not found`);
+      }
+      return bank;
+    } catch (error) {
+      throw new Error(`Error fetching bank by companyId: ${error.message}`);
     }
   }
 }

@@ -49,6 +49,11 @@ const invoiceSchema = new mongoose.Schema({
         required: [true, "Please enter the pending amount"],
         default: 0,
     },
+    mobile:{
+        type: Number,
+        required: [true, "Please enter the mobile number"],
+        trim: true,
+    },
 
     status: {
         type: String,

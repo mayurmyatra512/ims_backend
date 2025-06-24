@@ -49,7 +49,7 @@ export default class UserController {
 
     async getAllUser(req, res){
         try {
-            const users = await this.userRepository.getAllUser();
+            const users = await this.userRepository.getAllUsers();
             res.status(200).json(users);
         } catch (error) {
             console.log("Error in Controller = ", error);
@@ -59,10 +59,18 @@ export default class UserController {
 
     async login(req, res){
         try {
-            const user = await this.userRepository.login(req.body);
-            const token = await tokenGeneration({ id: user._id, email: user.email });
-            // Set token in httpOnly cookie
-            res.cookie('token', token, { httpOnly: true, sameSite: 'strict' });
+            const { email, password } = req.body;
+            const user = await this.userRepository.login(email, password);
+            console.log("User logged in: ", user);
+            // Generate token (if needed)
+            const token = await tokenGeneration(user._id, user.companyId);
+            // Set token in cookie (httpOnly for security)
+            res.cookie('token', token, {
+                httpOnly: true,
+                sameSite: 'lax',
+                // secure: true, // Uncomment if using HTTPS
+                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+            });
             res.status(200).json({ user, token });
         } catch (error) {
             console.log("Error in Controller = ", error);
@@ -83,18 +91,16 @@ export default class UserController {
 
     async createOrder(req, res){
         const { amount } = req.body;
-
-  const options = {
-    amount: amount * 100,
-    currency: 'INR',
-    receipt: `receipt_order_${Date.now()}`,
-  };
-
-  try {
-    const order = await razorpay.orders.create(options);
-    res.json(order);
-  } catch (err) {
-    res.status(500).json({ message: 'Failed to create Razorpay order' });
-  }
+        const options = {
+            amount: amount * 100,
+            currency: 'INR',
+            receipt: `receipt_order_${Date.now()}`,
+        };
+        try {
+            const order = await razorpay.orders.create(options);
+            res.json(order);
+        } catch (err) {
+            res.status(500).json({ message: 'Failed to create Razorpay order' });
+        }
     }
 }

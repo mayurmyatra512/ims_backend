@@ -1,4 +1,6 @@
+import mongoose from "mongoose";
 import CompanyModel from "../models/company.schema.js";
+import { getCompanyModel } from "../config/tenantManager.js";
 
 export default class CompanyRepository {
   async createCompany(companyData) {
@@ -59,5 +61,13 @@ export default class CompanyRepository {
     } catch (error) {
       throw new Error(`Error fetching companies: ${error.message}`);
     }
+  }
+
+  // Get an existing collection/model for a company (do not create new)
+  getCompanyCollection(companyId, type) {
+    const companyDb = mongoose.connection.useDb(`rkautoadviser_${companyId}`);
+    return companyDb.modelNames().includes(`${type}_${companyId}`)
+      ? companyDb.model(`${type}_${companyId}`)
+      : null;
   }
 }

@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import https from 'https';
 dotenv.config();
 import connectToMongoDB from './src/config/mongodbConnection.js';
 // import connectToMongoDB from './src/config/mongodbConnection.original.js';
@@ -13,7 +14,7 @@ import cors from 'cors';
 const app = express();
 const PORT = process.env.PORT || 3000;
 // Middleware
-const FRONTEND_ORIGIN = "http://ims.oiwsoftwares.com/*";
+const FRONTEND_ORIGIN = "https://ims.oiwsoftwares.com/*";
 
 app.use(cors({
   origin: {FRONTEND_ORIGIN, "*": true},

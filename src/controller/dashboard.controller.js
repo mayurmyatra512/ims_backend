@@ -1,4 +1,5 @@
 import DashboardRepository from "../repository/dashboard.repository.js";
+import { getCompanyNameById } from "../utils/companyNameUtil.js";
 
 export default class DashboardController {
     constructor() {
@@ -6,14 +7,16 @@ export default class DashboardController {
     }
     async getSummary(req, res) {
         try {
+            const companyId = req.params.companyId;
+            const companyName = await getCompanyNameById(companyId);
             // Get total counts
-            const totalInvoices = await this.DashboardRepository.countInvoices();
-            const totalParties = await this.DashboardRepository.countParties();
-            const totalServices = await this.DashboardRepository.countServices();
+            const totalInvoices = await this.DashboardRepository.countInvoices(companyId, companyName);
+            const totalParties = await this.DashboardRepository.countParties(companyId, companyName);
+            const totalServices = await this.DashboardRepository.countServices(companyId, companyName);
             // Calculate total revenue (sum of all invoices' totalAmount)
-            const totalRevenue = await this.DashboardRepository.getTotalRevenue();
+            const totalRevenue = await this.DashboardRepository.getTotalRevenue(companyId, companyName);
             // Get recent invoices (latest 5)
-            const recentInvoices = await this.DashboardRepository.getRecentInvoices(5);
+            const recentInvoices = await this.DashboardRepository.getRecentInvoices(companyId, companyName, 5);
             const data = {
                 totalInvoices,
                 totalParties,

@@ -11,5 +11,6 @@ bankRouter.get("/:id", authMiddleware, (req, res) => bankController.getBankById(
 bankRouter.put("/:id", authMiddleware, (req, res) => bankController.updateBank(req, res));
 bankRouter.delete("/:id", authMiddleware, (req, res) => bankController.deleteBank(req, res));
 bankRouter.get("/", authMiddleware, (req, res) => bankController.getAllBanks(req, res));
+bankRouter.get("/company/:companyId", authMiddleware, (req, res) => bankController.getBankByCompanyId(req, res));
 
 export default bankRouter;

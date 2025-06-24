@@ -57,4 +57,14 @@ export default class BankController{
             res.status(404).json({ message: error.message });
         }
     }
+    static async getBankByCompanyId(req, res) {
+        try {
+            const companyId = req.params.companyId;
+            const bank = await this.bankRepository.getBankByCompanyId(companyId);
+            res.status(200).json(bank);
+        } catch (error) {
+            console.error("Error in Controller: ", error);
+            res.status(404).json({ message: error.message });
+        }
+    }
 }

@@ -1,4 +1,5 @@
 import CompanyRepository from "../repository/company.repository.js";
+import { registerCompany } from "../config/tenantManager.js";
 
 export default class CompayController{
     constructor() {
@@ -7,7 +8,14 @@ export default class CompayController{
     async createCompany(req, res) {
         try {
             const companyData = req.body;
+            console.log(companyData)
             const company = await this.companyRepository.createCompany(companyData);
+            console.log("Company created: ", company);
+            // Register tenant collections after company is created
+            await registerCompany({
+                companyId: company._id.toString(),
+                companyName: company.companyName
+            });
             res.status(201).json(company);
         } catch (error) {
             console.error("Error in Controller: ", error);
