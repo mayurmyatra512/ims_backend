@@ -11,14 +11,7 @@ import mongoose from "mongoose";
 
 
 
-function getInitialsFromName(name) {
-    if (!name) return '';
-    return name
-        .split(' ')
-        .filter(Boolean)
-        .map(word => word[0].toUpperCase())
-        .join('');
-}
+
 
 export default class InvoicesController {
     constructor() {
@@ -283,31 +276,7 @@ export default class InvoicesController {
     }
 
     async getGeneratedBillNo(req, res) {
-        try {
-            const companyId  = req.params.id;
-            console.log("Company ID:", companyId);
-            const userName = req.query.userName?.trim();
-            console.log("User Name:", userName);
-            // Validate companyId
-            if (!companyId || !ObjectId.isValid(companyId) || companyId.length !== 24 || !/^[a-fA-F0-9]+$/.test(companyId)) {
-                return res.status(400).json({ message: "Invalid Company ID" });
-            }
-            if (!userName || typeof userName !== 'string' || userName.trim() === '') {
-                return res.status(400).json({ message: "User name is required" });  
-            }
-            const billNo = await this.invoiceRepository.getNextInvoiceNumber(
-                companyId,
-                dayjs().format("YYYY"),
-                getInitialsFromName(userName)
-            );
-            if (!billNo) {
-                return res.status(500).json({ message: "Failed to generate bill number" });
-            }
-            return res.status(200).json({ billNo });
-        } catch (error) {
-            console.error("Error generating bill number:", error);
-            return res.status(500).json({ message: error.message });
-        }
+       
 
             // const { companyId: companyIdStr } = req.params;
             // // Only proceed if companyId is a valid ObjectId

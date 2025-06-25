@@ -11,3 +11,12 @@ export async function getCompanyNameById(companyId) {
     if (!company) return null;
     return company.companyName;
 }
+
+export function getInitialsFromName(name) {
+    if (!name) return '';
+    return name
+        .split(' ')
+        .filter(Boolean)
+        .map(word => word[0].toUpperCase())
+        .join('');
+}
