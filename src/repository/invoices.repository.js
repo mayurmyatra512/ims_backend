@@ -102,7 +102,6 @@ export default class InvoiceRepository {
     const startOfYear = new Date(now.getFullYear(), 0, 1);
     const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
     // Count existing invoices for this year/initials
-    
     const invoiceCount = await Invoice.countDocuments({
         invoiceNumber: { $regex: `^${initials}-${year}-` },
         invoiceDate: { $gte: startOfYear, $lte: endOfYear }
