@@ -20,6 +20,7 @@ export default class CompanyRepository {
     try {
       const id = safeObjectId(companyId);
       // If id is not a valid ObjectId, return null (do not query)
+      console.log("Company ID:", id);
       if (typeof id !== "object" || !(id instanceof mongoose.Types.ObjectId)) {
         return null;
       }

@@ -285,6 +285,7 @@ export default class InvoicesController {
     async getGeneratedBillNo(req, res) {
     try {
         const { companyId: companyIdStr } = req.params;
+        console.log("Company ID:", companyIdStr);
 
         // ✅ Validate companyId
         if (!ObjectId.isValid(companyIdStr)) {
