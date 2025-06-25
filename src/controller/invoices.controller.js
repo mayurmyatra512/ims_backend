@@ -79,6 +79,9 @@ export default class InvoicesController {
     }
     async getInvoiceById(req, res) {
         try {
+            if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+  return res.status(400).json({ message: "Invalid invoice ID" });
+}
             const invoiceId = req.params.id;
             const companyName = await getCompanyNameById(req.params.companyId);
             console.log(invoiceId)
