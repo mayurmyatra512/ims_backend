@@ -6,6 +6,7 @@ import userRouter from './user.route.js';
 import dashboardRouter from './dashboard.route.js';
 import bankRouter from './bank.route.js';
 import companyRouter from './company.route.js';
+import billRouter from './billNumber.route.js';
 
 const router = express.Router();
 
@@ -16,6 +17,7 @@ router.use('/api/user', userRouter);
 router.use('/api/dashboard', dashboardRouter);
 router.use('/api/bank', bankRouter);
 router.use('/api/company', companyRouter);
+router.use('/api/billNumber', billRouter);
 
 router.get('/', (req, res) => {
   res.send('Welcome to the API');
