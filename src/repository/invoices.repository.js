@@ -73,15 +73,25 @@ export default class InvoiceRepository {
   }
 
   async getInvoiceById(companyId, companyName, invoiceId) {
+    // Only attempt to cast invoiceId to ObjectId if it looks like a valid ObjectId
+    let id = invoiceId;
+    if (typeof invoiceId === 'string' && invoiceId.length === 24 && /^[a-fA-F0-9]+$/.test(invoiceId)) {
+      try {
+        id = new mongoose.Types.ObjectId(invoiceId);
+      } catch (e) {
+        // fallback to string if not valid ObjectId
+        id = invoiceId;
+      }
+    }
     const InvoiceModel = this.getInvoiceModel(companyId, companyName);
     if (!InvoiceModel) throw new Error("Invoice collection not found for this company");
-    const invoice = await InvoiceModel.findById(invoiceId)
+    const invoice = await InvoiceModel.findById(id)
     // .populate({ path: "services.serviceId", select: "serviceName" }).populate("partyId");
     .populate({ path: "partyId", select: "partyName contactNumber" })
     .populate({ path: "services.serviceId", select: "serviceName" });
     
-    console.log("Populated partyId:", invoice.partyId);
-    console.log("Populated services:", invoice.services);
+    console.log("Populated partyId:", invoice?.partyId);
+    console.log("Populated services:", invoice?.services);
 
     if (!invoice) throw new Error(`Invoice with ID ${invoiceId} not found`);
     return invoice;
