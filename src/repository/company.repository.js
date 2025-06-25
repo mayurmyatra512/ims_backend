@@ -18,7 +18,12 @@ export default class CompanyRepository {
 
   async getCompanyById(companyId) {
     try {
-      const company = await CompanyModel.findById(safeObjectId(companyId));
+      const id = safeObjectId(companyId);
+      // If id is not a valid ObjectId, return null (do not query)
+      if (typeof id === "string" && (id.length !== 24 || !/^[a-fA-F0-9]+$/.test(id))) {
+        return null;
+      }
+      const company = await CompanyModel.findById(id);
       if (!company) {
         throw new Error(`Company with ID ${companyId} not found`);
       }
