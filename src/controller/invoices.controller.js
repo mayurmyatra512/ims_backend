@@ -9,7 +9,7 @@ import dayjs from "dayjs";
 import InvoiceModel from "../models/invoices.schema.js";
 import mongoose from "mongoose";
 
-const ObjectId = mongoose.Types.ObjectId;
+
 
 function getInitialsFromName(name) {
     if (!name) return '';
