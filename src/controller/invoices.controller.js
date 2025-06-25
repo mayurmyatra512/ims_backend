@@ -1,12 +1,24 @@
 import { createMailBody } from "../config/createMailBody.js";
 import BankRepository from "../repository/bank.repository.js";
-import InvoiceRepository from "../repository/invoices.repository.js";
+import InvoiceRepository, { getNextBillNo } from "../repository/invoices.repository.js";
 import PartyRepository from "../repository/parties.repository.js";
 import ServiceRepository from "../repository/services.repository.js";
 import { getCompanyNameById } from "../utils/companyNameUtil.js";
 import { ObjectId } from "mongodb";
+import dayjs from "dayjs";
+import InvoiceModel from "../models/invoices.schema.js";
+import mongoose from "mongoose";
 
- export default class InvoicesController {
+function getInitialsFromName(name) {
+    if (!name) return '';
+    return name
+        .split(' ')
+        .filter(Boolean)
+        .map(word => word[0].toUpperCase())
+        .join('');
+}
+
+export default class InvoicesController {
     constructor() {
         this.invoiceRepository = new InvoiceRepository();
         this.bankRepository = new BankRepository(); // Add this line
@@ -24,18 +36,18 @@ import { ObjectId } from "mongodb";
                 return res.status(400).json({ message: "Party not found" });
             }
 
-            const bankDetails = await this.bankRepository.getBankByCompanyId(req.params.companyId); // Use instance method
-            if (!bankDetails) {
-                return res.status(400).json({ message: "Bank details not found for the company" });
-            }
+            // const bankDetails = await this.bankRepository.getBankByCompanyId(req.params.companyId); // Use instance method
+
             // Build services array with serviceId and vehicleNum
+
+            
             const services = await Promise.all(
                 invoiceData.items.map(async (item) => {
                     const service = await ServiceRepository.getServiceByName(req.params.companyId, companyName, item.service);
                     return {
                         serviceId: new ObjectId(service._id),
                         amount: item.price,
-                        vehicleNum: item.name,
+                        vehicleNum: item.name || "",
                     };
                 })
             );
@@ -56,7 +68,7 @@ import { ObjectId } from "mongodb";
             };
             const invoice = await this.invoiceRepository.createInvoice(req.params.companyId, companyName, data);
             console.log('Party = ', party);
-            await createMailBody("max123mek@gmail.com", `${invoice.invoiceNumber} - ${invoice.invoiceDate}`, invoice, party, invoiceData.items, bankDetails);
+            // await createMailBody("max123mek@gmail.com", `${invoice.invoiceNumber} - ${invoice.invoiceDate}`, invoice, party, invoiceData.items, bankDetails);
             res.status(201).json(invoice);
         } catch (error) {
             console.log(error)
@@ -261,6 +273,50 @@ import { ObjectId } from "mongodb";
             const invoices = await this.invoiceRepository.getInvoicesByCreatedBy(req.params.companyId, companyName, createdBy);
             res.status(200).json(invoices);
         } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    }
+    async getGeneratedBillNo(req, res) {
+        try {
+            const companyId = req.params.companyId;
+            if (!companyId) {
+                return res.status(400).json({ message: "Company ID is required" });
+            }
+            const companyName = await getCompanyNameById(req.params.companyId);
+            if (!companyName) {
+                return res.status(404).json({ message: "Company not found" });
+            }
+            const userName = req.query.userName || "";
+            if (!userName) {
+                return res.status(400).json({ message: "User name is required" });
+            }
+            const now = dayjs();
+            const year = now.format("YYYY");
+            const initials = getInitialsFromName(userName);
+            console.log("Initials:", initials);
+            if (!initials) {
+                return res.status(400).json({ message: "Invalid user name for generating initials" });
+            }
+            let dbCompanyName = companyName.toLowerCase().replace(/\s+/g, "") + "_" + companyId;
+            let dbName = `${dbCompanyName}`;
+            // Get company DB using mongoose directly
+            const companyDb = mongoose.connection.useDb(dbName, { useCache: true });
+            console.log("Company DB:", companyDb.name);
+            if (!companyDb) {
+                return res.status(500).json({ message: "Failed to connect to company database" });
+            }
+            // Use counter collection for atomic increment
+            const nextSeq = await getNextBillNo(companyDb, companyId, initials, year);
+            console.log("Next Sequence Number:", nextSeq);
+            if (nextSeq === null || nextSeq === undefined) {
+                return res.status(500).json({ message: "Failed to generate bill number" });
+            }
+            const countStr = String(nextSeq).padStart(2, '0');
+            const billNo = `${initials}-${year}-${countStr}`;
+            console.log("Generated Bill No:", billNo);
+            res.status(200).json({ billNo });
+        } catch (error) {
+            console.error("Error generating bill number:", error);
             res.status(500).json({ message: error.message });
         }
     }

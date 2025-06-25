@@ -3,12 +3,45 @@ import { createMailBody } from "../config/createMailBody.js";
 import InvoiceModel from "../models/invoices.schema.js";
 import PartyRepository from "./parties.repository.js";
 import ServiceRepository from "./services.repository.js";
+import counterSchema from '../models/counter.schema.js';
 
 function getCompanyDb(companyId, companyName) {
   let dbCompanyName = companyName ? companyName.toLowerCase().replace(/\s+/g, "") : "company";
   const dbName = `${dbCompanyName}_${companyId}`;
-  return mongoose.connection.useDb(dbName, { useCache: true });
+  const companyDb = mongoose.connection.useDb(dbName, { useCache: true });
+  // Register Counter model if not already registered
+  if (!companyDb.modelNames().includes('Counter')) {
+    companyDb.model('Counter', counterSchema, 'counters');
+  }
+  return companyDb;
 }
+
+export const getNextBillNo = async (companyDb, companyId, initials, year) => {
+    // Register or get the Counter model in the company DB
+    const Counter = companyDb.models.Counter || companyDb.model('Counter', counterSchema);
+    if (!Counter) throw new Error("Counter model not found in company database");
+    // Get Invoice model for this company DB
+    const Invoice = companyDb.models.Invoice || companyDb.model('Invoice', InvoiceModel.schema, 'invoices');
+    // Count existing invoices for this year/initials
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+    const invoiceCount = await Invoice.countDocuments({
+        invoiceNumber: { $regex: `^${initials}-${year}-` },
+        invoiceDate: { $gte: startOfYear, $lte: endOfYear }
+    });
+    // Set seq to invoiceCount + 1 (only if seq is less)
+    const counterDoc = await Counter.findOneAndUpdate(
+        { companyId, year, initials },
+        [{
+            $set: {
+                seq: { $cond: [ { $lt: [ "$seq", invoiceCount + 1 ] }, invoiceCount + 1, "$seq" ] }
+            }
+        }],
+        { new: true, upsert: true }
+    );
+    return counterDoc.seq;
+};
 
 export default class InvoiceRepository {
   getInvoiceModel(companyId, companyName) {

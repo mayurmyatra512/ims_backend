@@ -16,7 +16,7 @@ const invoiceSchema = new mongoose.Schema({
         {
             vehicleNum: {
                 type: String,
-                required: [true, "Please provide Vehicle Number for the service"],
+                
             },
             serviceId: {
                 type: mongoose.Schema.Types.ObjectId,

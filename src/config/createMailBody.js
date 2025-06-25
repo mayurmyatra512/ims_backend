@@ -54,13 +54,13 @@ export const createMailBody = async (recipient, subject, invoice, customer, serv
               <td className="p-2 border">₹${invoice.pendingAmount.toFixed(2)}</td>
             </tr>
             <tr className="font-bold">
-              <td colSpan="4" className="p-2 text-left">${bank.accountNum}</td>
+              <td colSpan="4" className="p-2 text-left">${bank.accountNum || ""}</td>
             </tr>
             <tr className="font-bold">
-              <td colSpan="4" className="p-2 text-left">${bank.IFSC}</td>
+              <td colSpan="4" className="p-2 text-left">${bank.IFSC || ""}</td>
             </tr>
             <tr className="font-bold">
-              <td colSpan="4" className="p-2 text-left">${bank.Name}</td>
+              <td colSpan="4" className="p-2 text-left">${bank.Name || ""}</td>
             </tr>
           </tbody>
         </table>
