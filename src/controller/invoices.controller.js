@@ -283,51 +283,37 @@ export default class InvoicesController {
     }
 
     async getGeneratedBillNo(req, res) {
-    try {
-        const { companyId: companyIdStr } = req.params;
-        console.log("Company ID:", companyIdStr);
-
-        // ✅ Validate companyId
-        if (!ObjectId.isValid(companyIdStr)) {
-            return res.status(400).json({ message: "Invalid Company ID" });
+        try {
+            const { companyId: companyIdStr } = req.params;
+            // Only proceed if companyId is a valid ObjectId
+            if (typeof companyIdStr !== "string" || companyIdStr.length !== 24 || !/^[a-fA-F0-9]+$/.test(companyIdStr)) {
+                return res.status(400).json({ message: "Invalid Company ID" });
+            }
+            const companyName = await getCompanyNameById(companyIdStr);
+            if (!companyName) {
+                return res.status(404).json({ message: "Company not found" });
+            }
+            const userName = req.query.userName?.trim();
+            if (!userName) {
+                return res.status(400).json({ message: "User name is required" });
+            }
+            const now = dayjs();
+            const year = now.format("YYYY");
+            const initials = getInitialsFromName(userName);
+            if (!initials) {
+                return res.status(400).json({ message: "Invalid user name for generating initials" });
+            }
+            const dbCompanyName = companyName.toLowerCase().replace(/\s+/g, "") + "_" + companyIdStr;
+            const dbName = `${dbCompanyName}`;
+            const companyDb = mongoose.connection.useDb(dbName, { useCache: true });
+            const nextSeq = await getNextBillNo(companyDb, companyIdStr, initials, year);
+            const countStr = String(nextSeq).padStart(2, "0");
+            const billNo = `${initials}-${year}-${countStr}`;
+            return res.status(200).json({ billNo });
+        } catch (error) {
+            return res.status(500).json({ message: error.message });
         }
-        const companyId = new ObjectId(companyIdStr);
-
-        const companyName = await getCompanyNameById(companyIdStr);
-        if (!companyName) {
-            return res.status(404).json({ message: "Company not found" });
-        }
-
-        const userName = req.query.userName?.trim();
-        if (!userName) {
-            return res.status(400).json({ message: "User name is required" });
-        }
-
-        const now = dayjs();
-        const year = now.format("YYYY");
-        const initials = getInitialsFromName(userName);
-        if (!initials) {
-            return res.status(400).json({ message: "Invalid user name for generating initials" });
-        }
-
-        const dbCompanyName = companyName.toLowerCase().replace(/\s+/g, "") + "_" + companyId;
-        const dbName = `${dbCompanyName}`;
-        const companyDb = mongoose.connection.useDb(dbName, { useCache: true });
-
-        const nextSeq = await getNextBillNo(companyDb, companyId, initials, year);
-        if (nextSeq === null || nextSeq === undefined) {
-            return res.status(500).json({ message: "Failed to generate bill number" });
-        }
-
-        const countStr = String(nextSeq).padStart(2, "0");
-        const billNo = `${initials}-${year}-${countStr}`;
-        return res.status(200).json({ billNo });
-
-    } catch (error) {
-        console.error("Error generating bill number:", error);
-        return res.status(500).json({ message: error.message });
     }
-}
 
     // async getGeneratedBillNo(req, res) {
     //     try {
