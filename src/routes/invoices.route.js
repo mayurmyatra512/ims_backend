@@ -6,7 +6,7 @@ import authMiddleware from "../middleware/auth.js";
 const invoicesController = new InvoicesController();
 const invoicesRouter = Router();
 // Define routes for invoice operations
-invoicesRouter.get("/:companyId/generate-billno", authMiddleware, (req, res) =>
+invoicesRouter.get("/generate-billno/:companyId", authMiddleware, (req, res) =>
   invoicesController.getGeneratedBillNo(req, res)
 );
 
