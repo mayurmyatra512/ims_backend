@@ -21,7 +21,8 @@ export default class CompanyRepository {
     try {
       // Defensive: Only query if companyId is a valid ObjectId string
       if (typeof companyId !== "string" || companyId.length !== 24 || !/^[a-fA-F0-9]+$/.test(companyId)) {
-        throw new Error(`Invalid company ID: ${companyId}`);
+        // Instead of throwing, just return null so upstream can handle gracefully
+        return null;
       }
       const company = await CompanyModel.findById(companyId);
       if (!company) {
