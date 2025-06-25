@@ -278,7 +278,7 @@ export default class InvoicesController {
     }
     async getGeneratedBillNo(req, res) {
         try {
-            const companyId = req.params.companyId;
+            const companyId = new ObjectId(req.params.companyId);
             if (!companyId) {
                 return res.status(400).json({ message: "Company ID is required" });
             }
