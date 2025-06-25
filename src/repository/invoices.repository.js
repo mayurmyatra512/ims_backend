@@ -20,6 +20,16 @@ export const getNextBillNo = async (companyDb, companyId, initials, year) => {
     // Register or get the Counter model in the company DB
     const Counter = companyDb.models.Counter || companyDb.model('Counter', counterSchema);
     if (!Counter) throw new Error("Counter model not found in company database");
+    // Ensure companyId is an ObjectId
+    let companyObjectId = companyId;
+    if (typeof companyId === 'string' && companyId.length === 24) {
+        try {
+            companyObjectId = new mongoose.Types.ObjectId(companyId);
+        } catch (e) {
+            // fallback to string if not valid ObjectId
+            companyObjectId = companyId;
+        }
+    }
     // Get Invoice model for this company DB
     const Invoice = companyDb.models.Invoice || companyDb.model('Invoice', InvoiceModel.schema, 'invoices');
     // Count existing invoices for this year/initials
@@ -32,7 +42,7 @@ export const getNextBillNo = async (companyDb, companyId, initials, year) => {
     });
     // Set seq to invoiceCount + 1 (only if seq is less)
     const counterDoc = await Counter.findOneAndUpdate(
-        { companyId, year, initials },
+        { companyId: companyObjectId, year, initials },
         [{
             $set: {
                 seq: { $cond: [ { $lt: [ "$seq", invoiceCount + 1 ] }, invoiceCount + 1, "$seq" ] }
