@@ -23,7 +23,7 @@ export default class CompanyRepository {
       if (typeof id !== "object" || !(id instanceof mongoose.Types.ObjectId)) {
         return null;
       }
-      const company = await CompanyModel.findById(id);
+      const company = await CompanyModel.findById(_id = new ObjectId(id));
       if (!company) {
         throw new Error(`Company with ID ${companyId} not found`);
       }
