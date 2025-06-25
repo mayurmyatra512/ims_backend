@@ -17,7 +17,7 @@ router.use('/api/user', userRouter);
 router.use('/api/dashboard', dashboardRouter);
 router.use('/api/bank', bankRouter);
 router.use('/api/company', companyRouter);
-router.use('/api/billNumber', billRouter);
+router.use('/api/billnumber', billRouter);
 
 router.get('/', (req, res) => {
   res.send('Welcome to the API');
