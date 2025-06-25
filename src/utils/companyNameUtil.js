@@ -4,6 +4,6 @@ const companyRepository = new CompanyRepository();
 
 export async function getCompanyNameById(companyId) {
     const company = await companyRepository.getCompanyById(companyId);
-    if (!company) throw new Error(`Company with ID ${companyId} not found`);
+    if (!company) return null;
     return company.companyName;
 }
