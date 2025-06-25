@@ -20,7 +20,7 @@ export default class CompanyRepository {
     try {
       const id = safeObjectId(companyId);
       // If id is not a valid ObjectId, return null (do not query)
-      if (typeof id === "string" && (id.length !== 24 || !/^[a-fA-F0-9]+$/.test(id))) {
+      if (typeof id !== "object" || !(id instanceof mongoose.Types.ObjectId)) {
         return null;
       }
       const company = await CompanyModel.findById(id);
