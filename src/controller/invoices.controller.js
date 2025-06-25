@@ -9,6 +9,8 @@ import dayjs from "dayjs";
 import InvoiceModel from "../models/invoices.schema.js";
 import mongoose from "mongoose";
 
+const ObjectId = mongoose.Types.ObjectId;
+
 function getInitialsFromName(name) {
     if (!name) return '';
     return name
@@ -276,49 +278,96 @@ export default class InvoicesController {
             res.status(500).json({ message: error.message });
         }
     }
+
     async getGeneratedBillNo(req, res) {
-        try {
-            const companyId = new ObjectId(req.params.companyId);
-            if (!companyId) {
-                return res.status(400).json({ message: "Company ID is required" });
-            }
-            const companyName = await getCompanyNameById(req.params.companyId);
-            if (!companyName) {
-                return res.status(404).json({ message: "Company not found" });
-            }
-            const userName = req.query.userName || "";
-            if (!userName) {
-                return res.status(400).json({ message: "User name is required" });
-            }
-            const now = dayjs();
-            const year = now.format("YYYY");
-            const initials = getInitialsFromName(userName);
-            console.log("Initials:", initials);
-            if (!initials) {
-                return res.status(400).json({ message: "Invalid user name for generating initials" });
-            }
-            let dbCompanyName = companyName.toLowerCase().replace(/\s+/g, "") + "_" + companyId;
-            let dbName = `${dbCompanyName}`;
-            // Get company DB using mongoose directly
-            const companyDb = mongoose.connection.useDb(dbName, { useCache: true });
-            console.log("Company DB:", companyDb.name);
-            if (!companyDb) {
-                return res.status(500).json({ message: "Failed to connect to company database" });
-            }
-            // Use counter collection for atomic increment
-            const nextSeq = await getNextBillNo(companyDb, companyId, initials, year);
-            console.log("Next Sequence Number:", nextSeq);
-            if (nextSeq === null || nextSeq === undefined) {
-                return res.status(500).json({ message: "Failed to generate bill number" });
-            }
-            const countStr = String(nextSeq).padStart(2, '0');
-            const billNo = `${initials}-${year}-${countStr}`;
-            console.log("Generated Bill No:", billNo);
-            res.status(200).json({ billNo });
-        } catch (error) {
-            console.error("Error generating bill number:", error);
-            res.status(500).json({ message: error.message });
+    try {
+        const { companyId: companyIdStr } = req.params;
+
+        // ✅ Validate companyId
+        if (!ObjectId.isValid(companyIdStr)) {
+            return res.status(400).json({ message: "Invalid Company ID" });
         }
+        const companyId = new ObjectId(companyIdStr);
+
+        const companyName = await getCompanyNameById(companyIdStr);
+        if (!companyName) {
+            return res.status(404).json({ message: "Company not found" });
+        }
+
+        const userName = req.query.userName?.trim();
+        if (!userName) {
+            return res.status(400).json({ message: "User name is required" });
+        }
+
+        const now = dayjs();
+        const year = now.format("YYYY");
+        const initials = getInitialsFromName(userName);
+        if (!initials) {
+            return res.status(400).json({ message: "Invalid user name for generating initials" });
+        }
+
+        const dbCompanyName = companyName.toLowerCase().replace(/\s+/g, "") + "_" + companyId;
+        const dbName = `${dbCompanyName}`;
+        const companyDb = mongoose.connection.useDb(dbName, { useCache: true });
+
+        const nextSeq = await getNextBillNo(companyDb, companyId, initials, year);
+        if (nextSeq === null || nextSeq === undefined) {
+            return res.status(500).json({ message: "Failed to generate bill number" });
+        }
+
+        const countStr = String(nextSeq).padStart(2, "0");
+        const billNo = `${initials}-${year}-${countStr}`;
+        return res.status(200).json({ billNo });
+
+    } catch (error) {
+        console.error("Error generating bill number:", error);
+        return res.status(500).json({ message: error.message });
     }
+}
+
+    // async getGeneratedBillNo(req, res) {
+    //     try {
+    //         const companyId = new ObjectId(req.params.companyId);
+    //         if (!companyId) {
+    //             return res.status(400).json({ message: "Company ID is required" });
+    //         }
+    //         const companyName = await getCompanyNameById(req.params.companyId);
+    //         if (!companyName) {
+    //             return res.status(404).json({ message: "Company not found" });
+    //         }
+    //         const userName = req.query.userName || "";
+    //         if (!userName) {
+    //             return res.status(400).json({ message: "User name is required" });
+    //         }
+    //         const now = dayjs();
+    //         const year = now.format("YYYY");
+    //         const initials = getInitialsFromName(userName);
+    //         console.log("Initials:", initials);
+    //         if (!initials) {
+    //             return res.status(400).json({ message: "Invalid user name for generating initials" });
+    //         }
+    //         let dbCompanyName = companyName.toLowerCase().replace(/\s+/g, "") + "_" + companyId;
+    //         let dbName = `${dbCompanyName}`;
+    //         // Get company DB using mongoose directly
+    //         const companyDb = mongoose.connection.useDb(dbName, { useCache: true });
+    //         console.log("Company DB:", companyDb.name);
+    //         if (!companyDb) {
+    //             return res.status(500).json({ message: "Failed to connect to company database" });
+    //         }
+    //         // Use counter collection for atomic increment
+    //         const nextSeq = await getNextBillNo(companyDb, companyId, initials, year);
+    //         console.log("Next Sequence Number:", nextSeq);
+    //         if (nextSeq === null || nextSeq === undefined) {
+    //             return res.status(500).json({ message: "Failed to generate bill number" });
+    //         }
+    //         const countStr = String(nextSeq).padStart(2, '0');
+    //         const billNo = `${initials}-${year}-${countStr}`;
+    //         console.log("Generated Bill No:", billNo);
+    //         res.status(200).json({ billNo });
+    //     } catch (error) {
+    //         console.error("Error generating bill number:", error);
+    //         res.status(500).json({ message: error.message });
+    //     }
+    // }
 
 }
