@@ -141,3 +141,15 @@ export default class InvoiceRepository {
       .populate({ path: "services.serviceId", select: "serviceName" });
 }
 }
+
+// Utility: Only cast to ObjectId if string is a valid 24-char hex
+export function safeObjectId(id) {
+  if (typeof id === 'string' && id.length === 24 && /^[a-fA-F0-9]+$/.test(id)) {
+    try {
+      return new mongoose.Types.ObjectId(id);
+    } catch (e) {
+      return id;
+    }
+  }
+  return id;
+}
