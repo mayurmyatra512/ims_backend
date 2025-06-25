@@ -284,7 +284,7 @@ export default class InvoicesController {
 
     async getGeneratedBillNo(req, res) {
         try {
-            const companyId  = req.params.companyId;
+            const companyId  = req.params.id;
             console.log("Company ID:", companyId);
             const userName = req.query.userName?.trim();
             console.log("User Name:", userName);
