@@ -19,14 +19,11 @@ export default class CompanyRepository {
 
   async getCompanyById(companyId) {
     try {
-      // const id = safeObjectId(companyId);
-      // If id is not a valid ObjectId, return null (do not query)
-      console.log("Company ID:", companyId);
-      // if (typeof id !== "object" || !(id instanceof mongoose.Types.ObjectId)) {
-      //   return null;
-      // }
+      // Defensive: Only query if companyId is a valid ObjectId string
+      if (typeof companyId !== "string" || companyId.length !== 24 || !/^[a-fA-F0-9]+$/.test(companyId)) {
+        throw new Error(`Invalid company ID: ${companyId}`);
+      }
       const company = await CompanyModel.findById(companyId);
-      console.log("Fetched company:", company);
       if (!company) {
         throw new Error(`Company with ID ${companyId} not found`);
       }
