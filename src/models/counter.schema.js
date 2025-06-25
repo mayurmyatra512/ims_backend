@@ -10,4 +10,6 @@ const counterSchema = new mongoose.Schema({
 // Ensure unique index for companyId, year, initials
 counterSchema.index({ companyId: 1, year: 1, initials: 1 }, { unique: true });
 
-export default counterSchema;
+const CounterModel = mongoose.model("Counter", counterSchema, "counters");
+
+export default CounterModel;
