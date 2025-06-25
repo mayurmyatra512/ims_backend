@@ -3,6 +3,7 @@ import CompanyModel from "../models/company.schema.js";
 import { getCompanyModel } from "../config/tenantManager.js";
 import { ObjectId } from "mongodb";
 import { safeObjectId } from "./invoices.repository.js";
+import e from "express";
 
 export default class CompanyRepository {
   async createCompany(companyData) {
@@ -18,18 +19,20 @@ export default class CompanyRepository {
 
   async getCompanyById(companyId) {
     try {
-      const id = safeObjectId(companyId);
+      // const id = safeObjectId(companyId);
       // If id is not a valid ObjectId, return null (do not query)
-      console.log("Company ID:", id);
-      if (typeof id !== "object" || !(id instanceof mongoose.Types.ObjectId)) {
-        return null;
-      }
-      const company = await CompanyModel.findById(_id = new ObjectId(id));
+      console.log("Company ID:", companyId);
+      // if (typeof id !== "object" || !(id instanceof mongoose.Types.ObjectId)) {
+      //   return null;
+      // }
+      const company = await CompanyModel.findById(companyId);
+      console.log("Fetched company:", company);
       if (!company) {
         throw new Error(`Company with ID ${companyId} not found`);
       }
       return company;
     } catch (error) {
+      console.log(error);
       throw new Error(`Error fetching company: ${error.message}`);
     }
   }
