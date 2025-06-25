@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import CompanyModel from "../models/company.schema.js";
 import { getCompanyModel } from "../config/tenantManager.js";
+import { ObjectId } from "mongodb";
 
 export default class CompanyRepository {
   async createCompany(companyData) {
@@ -16,7 +17,7 @@ export default class CompanyRepository {
 
   async getCompanyById(companyId) {
     try {
-      const company = await CompanyModel.findById(companyId);
+      const company = await CompanyModel.findById(new ObjectId(companyId));
       if (!company) {
         throw new Error(`Company with ID ${companyId} not found`);
       }
