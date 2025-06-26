@@ -30,11 +30,6 @@ export default class InvoicesController {
             if (!party) {
                 return res.status(400).json({ message: "Party not found" });
             }
-
-            // const bankDetails = await this.bankRepository.getBankByCompanyId(req.params.companyId); // Use instance method
-
-            // Build services array with serviceId and vehicleNum
-
             
             const services = await Promise.all(
                 invoiceData.items.map(async (item) => {
@@ -101,9 +96,18 @@ export default class InvoicesController {
         try {
             const invoiceId = req.params.id;
             const companyName = await getCompanyNameById(req.params.companyId);
+            console.log("Invoice ID in deleteInvoice:", invoiceId);
+            if (!mongoose.Types.ObjectId.isValid(invoiceId)) {
+                return res.status(400).json({ message: "Invalid invoice ID" });
+            }
+            console.log("Company Name in deleteInvoice:", companyName);
+            if (!companyName) {
+                return res.status(404).json({ message: "Company not found" });
+            }
             const deletedInvoice = await this.invoiceRepository.deleteInvoice(req.params.companyId, companyName, invoiceId);
             res.status(200).json(deletedInvoice);
         } catch (error) {
+            console.log("Error in Controller = ", error);
             res.status(404).json({ message: error.message });
         }
     }

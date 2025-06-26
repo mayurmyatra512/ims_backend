@@ -28,6 +28,7 @@ export default class BillNumberController {
                 dayjs().format("YYYY"),
                 getInitialsFromName(userName)
             );
+            console.log("Generated Bill Number:", billNo);
             if (!billNo) {
                 return res.status(500).json({ message: "Failed to generate bill number" });
             }

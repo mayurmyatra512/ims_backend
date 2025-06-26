@@ -78,44 +78,28 @@ export default class InvoiceRepository {
     return companyDb.model('Counter');
   }
   async getNextInvoiceNumber(companyId, year, initials) {
-    const companyName = await this.companyRepository.getCompanyById(companyId).then(company => company.companyName);
-    if (!companyName) throw new Error("Company name not found for the given companyId");
-    const companyDb = this.getCounterModel(companyId, companyName);
-    if (!companyDb) throw new Error("Company database not found");
-    const CounterModel = this.getCounterModel(companyId, companyName);
-    if (!CounterModel) throw new Error("Counter collection not found for this company");
-    // Ensure companyId is an ObjectId
-    let companyObjectId = companyId;
-    if (typeof companyId === 'string' && companyId.length === 24) {
-      try {
-        companyObjectId = new mongoose.Types.ObjectId(companyId);
-      } catch (e) {
-        // fallback to string if not valid ObjectId
-        companyObjectId = companyId;
+    try {
+      const companyName = await this.companyRepository.getCompanyById(companyId).then(company => company.companyName);
+      if (!companyName) throw new Error("Company name not found for the given companyId");
+      const CounterModel = this.getCounterModel(companyId, companyName);
+      if (!CounterModel) throw new Error("Counter collection not found for this company");
+      // Ensure companyId is an ObjectId
+      let companyObjectId = companyId;
+      if (typeof companyId === 'string' && companyId.length === 24) {
+        try {
+          companyObjectId = new mongoose.Types.ObjectId(companyId);
+        } catch (e) {
+          companyObjectId = companyId;
+        }
       }
+      // Fetch current seq (do not update)
+      let counterDoc = await CounterModel.findOne({ companyId: companyObjectId, year, initials });
+      let nextSeq = counterDoc && counterDoc.seq;
+      return `${initials}-${year}-${nextSeq.toString().padStart(4, '0')}`;
+    } catch (err) {
+      console.error("Error fetching next invoice number:", err);
+      throw err;
     }
-    const Invoice = this.getInvoiceModel(companyId, companyName);
-    if (!Invoice) throw new Error("Invoice collection not found for this company");
-    // Get the current year
-    // Count existing invoices for this year/initials
-    const now = new Date();
-    const startOfYear = new Date(now.getFullYear(), 0, 1);
-    const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
-    // Count existing invoices for this year/initials
-    const invoiceCount = await Invoice.countDocuments({
-        invoiceNumber: { $regex: `^${initials}-${year}-` },
-        invoiceDate: { $gte: startOfYear, $lte: endOfYear }
-    });
-    const counterDoc = await CounterModel.findOneAndUpdate(
-      { companyId: companyObjectId, year, initials },
-        [{
-            $set: {
-                seq: { $cond: [ { $lt: [ "$seq", invoiceCount + 1 ] }, invoiceCount + 1, "$seq" ] }
-            }
-        }],
-        { new: true, upsert: true }
-    );
-    return `${initials}-${year}-${counterDoc.seq.toString().padStart(4, '0')}`;
   }
 
   async createInvoice(companyId, companyName, invoiceData) {
@@ -123,6 +107,36 @@ export default class InvoiceRepository {
     if (!InvoiceModel) throw new Error("Invoice collection not found for this company");
     const invoice = new InvoiceModel(invoiceData);
     await invoice.save();
+    // After saving, update the counter seq if needed
+    try {
+      // Parse invoiceNumber to get initials, year, seq
+      const invoiceNumber = invoiceData.invoiceNumber;
+      const match = invoiceNumber.match(/^(.*)-(\d{4})-(\d{4})$/);
+      if (match) {
+        const initials = match[1];
+        const year = match[2];
+        const seq = parseInt(match[3], 10);
+        console.log("Parsed invoice number:", { initials, year, seq });
+        const CounterModel = this.getCounterModel(companyId, companyName);
+        let companyObjectId = companyId;
+        if (typeof companyId === 'string' && companyId.length === 24) {
+          try {
+            companyObjectId = new mongoose.Types.ObjectId(companyId);
+          } catch (e) {
+            companyObjectId = companyId;
+          }
+        }
+        // Only update if seq is greater than current
+        const res = await CounterModel.findOneAndUpdate(
+          { companyId: companyObjectId, year, initials },
+          { $inc: { seq: 1 } },
+          { upsert: true }
+        );
+        console.log("Counter update result:", res);
+      }
+    } catch (err) {
+      console.error("Error updating counter after invoice save:", err);
+    }
     return invoice;
   }
 
