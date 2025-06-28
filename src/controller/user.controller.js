@@ -116,7 +116,7 @@ export default class UserController {
             res.cookie('token', token, {
                 httpOnly: true,
                 sameSite: 'lax',
-                secure: true, // Uncomment if using HTTPS
+                // secure: true, // Uncomment if using HTTPS
                 maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
             });
             res.status(200).json({ user, token });

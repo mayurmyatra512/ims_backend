@@ -85,6 +85,9 @@ export default class InvoicesController {
         try {
             const invoiceId = req.params.id;
             const invoiceData = req.body;
+            if( invoiceData.pendingAmount <= 0){
+                invoiceData.status = "Paid";
+            }
             const companyName = await getCompanyNameById(req.params.companyId);
             const updatedInvoice = await this.invoiceRepository.updateInvoice(req.params.companyId, companyName, invoiceId, invoiceData);
             res.status(200).json(updatedInvoice);
