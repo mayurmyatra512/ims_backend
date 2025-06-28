@@ -1,6 +1,8 @@
-import UserController from "../controller/user.controller.js";
+import UserController, { upload } from "../controller/user.controller.js";
 import authMiddleware from "../middleware/auth.js";
+import uploadMiddleware from "../middleware/uploads.js";
 import { Router } from "express";
+import express from "express";
 
 const userController = new UserController()
 const userRouter = Router();
@@ -13,7 +15,11 @@ userRouter.put("/:id",authMiddleware,(req,res) => userController.updateUser(req,
 userRouter.delete("/:id",authMiddleware , (req,res) => userController.deleteUser(req,res));
 userRouter.post("/login", (req,res) => userController.login(req,res));
 userRouter.post("/logout", (req,res) => userController.logOut(req,res));
+// userRouter.post('/updateUser', authMiddleware, (req,res) => userController.updateProfile(req,res))
 userRouter.post('/createOrder', (req,res) => userController.createOrder(req,res))
+userRouter.post('/forgotPassword', (req,res) => userController.forgetPassword(req,res))
+userRouter.post('/resetPassword', (req,res) => userController.resetPassword(req,res))
+userRouter.put("/update/:id/:companyId", uploadMiddleware.single("profileImage"), (req, res) => userController.updateUser(req, res));
 
 
 export default userRouter;

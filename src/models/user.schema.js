@@ -3,6 +3,7 @@ import validator from "validator";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import e from "express";
 // import { getDbConnection } from "../config/mongodbConnection.js ";
 
 const userSchema = new mongoose.Schema({
@@ -23,6 +24,10 @@ const userSchema = new mongoose.Schema({
         required: [true, "Please enter your password"],
         minlength: [6, "Password must be at least 6 characters"],
         select: false, // Exclude password from queries by default
+    },
+    profileImage: {
+        type: String,
+        default: "https://example.com/default-logo.png", // Default logo URL
     },
     passwordChangedAt: Date,
     passwordResetToken: String,
