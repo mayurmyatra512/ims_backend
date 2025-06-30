@@ -29,7 +29,11 @@ const companySchema = new mongoose.Schema({
             return new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
         },
     },
-    
+    type:{
+        type: String,
+        enum: ["RTO Service", "Service", "Items", "Both"],
+        required: [true, "Please select the invoice type"],
+    },
     maxEmailsAllowed: {
         type: Number,
     },
