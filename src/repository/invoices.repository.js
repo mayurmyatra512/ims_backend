@@ -168,11 +168,13 @@ export default class InvoiceRepository {
   async updateInvoice(companyId, companyName, invoiceId, invoiceData) {
     const InvoiceModel = this.getInvoiceModel(companyId, companyName);
     if (!InvoiceModel) throw new Error("Invoice collection not found for this company");
+    // console.log("In repo: ", invoiceData.services);
     const invoice = await InvoiceModel.findByIdAndUpdate(
       invoiceId,
       { ...invoiceData, updatedAt: new Date() },
       { new: true, runValidators: true }
     );
+    
     if (!invoice) throw new Error(`Invoice with ID ${invoiceId} not found`);
     return invoice;
   }

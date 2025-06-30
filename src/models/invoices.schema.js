@@ -31,19 +31,19 @@ const invoiceSchema = new mongoose.Schema({
     ],
     items: [
         {
-            name: {
+            itemName: {
                 type: String,
-                required: true,
+                // required: true,
                 trim: true,
             },
-            quantity: {
+            itemQuantity: {
                 type: Number,
-                required: true,
+                // required: true,
                 min: 1,
             },
-            price: {
+            itemPrice: {
                 type: Number,
-                required: true,
+                // required: true,
                 min: 0,
             },
         },
@@ -68,7 +68,7 @@ const invoiceSchema = new mongoose.Schema({
         required: [true, "Please enter the pending amount"],
         default: 0,
     },
-    mobile:{
+    mobile: {
         type: Number,
         required: [true, "Please enter the mobile number"],
         trim: true,
@@ -95,7 +95,7 @@ const invoiceSchema = new mongoose.Schema({
 });
 // Conditional validation
 invoiceSchema.pre("validate", async function (next) {
-      try {
+    try {
         const invoice = this;
 
         // Fetch the user and their associated company
@@ -133,8 +133,10 @@ invoiceSchema.pre("validate", async function (next) {
 
 // Calculate totalAmount before saving or updating
 invoiceSchema.pre("save", function (next) {
-     const servicesTotal = (this.services || []).reduce((sum, s) => sum + s.amount, 0);
-    const itemsTotal = (this.items || []).reduce((sum, i) => sum + (i.price * i.quantity), 0);
+    let servicesTotal = (this.services || []).reduce((sum, s) => sum + s.amount, 0);
+    let itemsTotal = (this.items || []).reduce((sum, i) => sum + (i.price * i.quantity), 0);
+    servicesTotal = isNaN(Number(servicesTotal)) ? 0 : Number(servicesTotal)
+    itemsTotal = isNaN(Number(itemsTotal)) ? 0 : Number(itemsTotal)
     this.totalAmount = servicesTotal + itemsTotal;
 
     this.updatedAt = new Date();
@@ -144,8 +146,12 @@ invoiceSchema.pre("save", function (next) {
 invoiceSchema.pre("findOneAndUpdate", function (next) {
     const update = this.getUpdate();
     if (update.services || update.items) {
-       const servicesTotal = (update.services || []).reduce((sum, s) => sum + s.amount, 0);
-        const itemsTotal = (update.items || []).reduce((sum, i) => sum + (i.price * i.quantity), 0);
+        let servicesTotal = (update.services || []).reduce((sum, s) => sum + s.amount, 0);
+        console.log("ServiceTotal :", servicesTotal);
+        let itemsTotal = (update.items || []).reduce((sum, i) => sum + (i.price * i.quantity), 0);
+        servicesTotal = isNaN(Number(servicesTotal)) ? 0 : Number(servicesTotal)
+        itemsTotal = isNaN(Number(itemsTotal)) ? 0 : Number(itemsTotal)
+        // console.log("itemsTotal :", isNaN(Number(itemsTotal)) ? 0 : Number(itemsTotal));
         update.totalAmount = servicesTotal + itemsTotal;
     }
     update.updatedAt = new Date();
@@ -156,8 +162,10 @@ invoiceSchema.pre("findOneAndUpdate", function (next) {
 invoiceSchema.pre("updateMany", function (next) {
     const update = this.getUpdate();
     if (update.services || update.items) {
-       const servicesTotal = (update.services || []).reduce((sum, s) => sum + s.amount, 0);
-        const itemsTotal = (update.items || []).reduce((sum, i) => sum + (i.price * i.quantity), 0);
+        let servicesTotal = (update.services || []).reduce((sum, s) => sum + s.amount, 0);
+        let itemsTotal = (update.items || []).reduce((sum, i) => sum + (i.price * i.quantity), 0);
+        servicesTotal = isNaN(Number(servicesTotal)) ? 0 : Number(servicesTotal)
+        itemsTotal = isNaN(Number(itemsTotal)) ? 0 : Number(itemsTotal)
         update.totalAmount = servicesTotal + itemsTotal;
     }
     update.updatedAt = new Date();

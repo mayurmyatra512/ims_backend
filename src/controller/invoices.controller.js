@@ -85,13 +85,52 @@ export default class InvoicesController {
         try {
             const invoiceId = req.params.id;
             const invoiceData = req.body;
-            if( invoiceData.pendingAmount <= 0){
-                invoiceData.status = "Paid";
+             const companyName = await getCompanyNameById(req.params.companyId);
+            // console.log("Invoice Data: " , invoiceData);
+             const party = await PartyRepository.getPartyByName(
+                req.params.companyId,
+                companyName,
+                invoiceData.customer.name // Pass only the name string
+            );
+            if (!party) {
+                return res.status(400).json({ message: "Party not found" });
             }
-            const companyName = await getCompanyNameById(req.params.companyId);
-            const updatedInvoice = await this.invoiceRepository.updateInvoice(req.params.companyId, companyName, invoiceId, invoiceData);
+            const services = await Promise.all(
+                invoiceData.items.map(async (item) => {
+                    const service = await ServiceRepository.getServiceByName(req.params.companyId, companyName, item.service);
+                    // console.log("Service = ", service)
+                    return {
+                        serviceId: new ObjectId(service._id),
+                        amount: item.price,
+                        vehicleNum: item.name || "",
+                    };
+                })
+            );
+            // console.log(services)
+            if( invoiceData.pendingAmount === 0 || invoiceData.pendingAmount < 0){
+                invoiceData.status = "Paid";
+            } else {
+                invoiceData.status = "Pending";
+            }
+            const data = {
+                 invoiceNumber: invoiceData.billNo,
+                partyId: new ObjectId(party._id),
+                services,
+                totalAmount: invoiceData.totalAmount,
+                invoiceDate: invoiceData.invoiceDate,
+                paidAmount: invoiceData.paidAmount,
+                pendingAmount: invoiceData.pendingAmount,
+                mobile: invoiceData.customer.mobile, // Assuming customer.mobile is passed in the request body
+                status: invoiceData.status,
+                createdBy: new ObjectId(invoiceData.createdBy),
+            }
+            // console.log(data);
+           
+            const updatedInvoice = await this.invoiceRepository.updateInvoice(req.params.companyId, companyName, invoiceId, data);
+            console.log("Saved Invoice in Controller :", updatedInvoice)
             res.status(200).json(updatedInvoice);
         } catch (error) {
+            console.log(error)
             res.status(404).json({ message: error.message });
         }
     }
