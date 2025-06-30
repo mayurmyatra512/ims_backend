@@ -113,7 +113,6 @@ export default class InvoicesController {
                 invoiceData.status = "Pending";
             }
             const data = {
-                 invoiceNumber: invoiceData.billNo,
                 partyId: new ObjectId(party._id),
                 services,
                 totalAmount: invoiceData.totalAmount,
