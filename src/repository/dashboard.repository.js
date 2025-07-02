@@ -17,7 +17,7 @@ export default class DashboardRepository {
         }
         return companyDb.model('dashboard');
     }
-    async countInvoices(companyId, companyName){
+    async countInvoices(companyId, companyName) {
         const companyDb = getCompanyDb(companyId, companyName);
         if (!companyDb.modelNames().includes('invoices')) {
             companyDb.model('invoices', InvoiceModel.schema);
@@ -25,7 +25,7 @@ export default class DashboardRepository {
         const InvoiceModelDb = companyDb.model('invoices');
         return await InvoiceModelDb.countDocuments();
     }
-    async countParties(companyId, companyName){
+    async countParties(companyId, companyName) {
         const companyDb = getCompanyDb(companyId, companyName);
         if (!companyDb.modelNames().includes('parties')) {
             companyDb.model('parties', PartyModel.schema);
@@ -33,7 +33,7 @@ export default class DashboardRepository {
         const PartyModelDb = companyDb.model('parties');
         return await PartyModelDb.countDocuments();
     }
-    async countServices(companyId, companyName){
+    async countServices(companyId, companyName) {
         const companyDb = getCompanyDb(companyId, companyName);
         if (!companyDb.modelNames().includes('services')) {
             companyDb.model('services', ServiceModel.schema);
@@ -41,7 +41,7 @@ export default class DashboardRepository {
         const ServiceModelDb = companyDb.model('services');
         return await ServiceModelDb.countDocuments();
     }
-    async getTotalRevenue(companyId, companyName){
+    async getTotalRevenue(companyId, companyName) {
         const companyDb = getCompanyDb(companyId, companyName);
         if (!companyDb.modelNames().includes('invoices')) {
             companyDb.model('invoices', InvoiceModel.schema);
@@ -52,16 +52,31 @@ export default class DashboardRepository {
         ]);
         return result[0]?.total || 0;
     }
-    async getRecentInvoices(companyId, companyName, limit = 5){
+    async getRecentInvoices(companyId, companyName, limit = 5) {
         const companyDb = getCompanyDb(companyId, companyName);
+        // console.log(companyDb)
         if (!companyDb.modelNames().includes('invoices')) {
             companyDb.model('invoices', InvoiceModel.schema);
         }
+
+        // Dynamically register Party model if not registered
+        if (!companyDb.models["parties"]) {
+            companyDb.model("parties", require("../models/PartyModel").schema); // Adjust path if needed
+        }
+
+        // Dynamically register Invoice model if not registered
+        if (!companyDb.models["invoices"]) {
+            companyDb.model("invoices", require("../models/InvoiceModel").schema); // Adjust path if needed
+        }
+
         const InvoiceModelDb = companyDb.model('invoices');
+        console.log(InvoiceModel)
         const invoices = await InvoiceModelDb.find()
+            .populate({ path: "partyId", select: "partyName" })
             .sort({ invoiceDate: -1 })
             .limit(limit)
-            .populate({ path: "partyId", select: "partyName" });
+        // .populate({ path: "partyId", select: "partyName" });
+        console.log("Invoices = ", invoices)
         return invoices.map(inv => ({
             _id: inv._id,
             invoiceNumber: inv.invoiceNumber,

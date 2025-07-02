@@ -24,7 +24,7 @@ export default class DashboardController {
                 totalRevenue,
                 recentInvoices
             }
-            console.log(data);
+            // console.log("Recent Invoices = ",recentInvoices);
             res.status(200).json({
                 totalInvoices,
                 totalParties,
