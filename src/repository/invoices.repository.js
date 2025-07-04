@@ -6,6 +6,7 @@ import ServiceRepository from "./services.repository.js";
 import counterSchema from '../models/counter.schema.js';
 import CounterModel from "../models/counter.schema.js";
 import CompanyRepository from "./company.repository.js";
+import PartyModel from "../models/parties.schema.js";
 
 function getCompanyDb(companyId, companyName) {
   let dbCompanyName = companyName ? companyName.toLowerCase().replace(/\s+/g, "") : "company";
@@ -77,6 +78,15 @@ export default class InvoiceRepository {
     }
     return companyDb.model('Counter');
   }
+  // getPartyModel(companyId, companyName) {
+  //   const companyDb = getCompanyDb(companyId, companyName);
+  //   if (!companyDb) throw new Error("Company database not found");
+  //   // Register the model if not already registered
+  //   if (!companyDb.modelNames().includes('Party')) {
+  //     companyDb.model('Party', PartyModel.schema, 'parties');
+  //   }
+  //   return companyDb.model('Party');
+  // }
   async getNextInvoiceNumber(companyId, year, initials) {
     try {
       const companyName = await this.companyRepository.getCompanyById(companyId).then(company => company.companyName);
@@ -188,6 +198,7 @@ export default class InvoiceRepository {
   }
 
  async getAllInvoices(companyId, companyName) {
+
     const InvoiceModel = this.getInvoiceModel(companyId, companyName);
     if (!InvoiceModel) throw new Error("Invoice collection not found for this company");
     const invoices = await InvoiceModel.find();
@@ -197,18 +208,22 @@ export default class InvoiceRepository {
     const ServiceModel = ServiceRepository.getServiceModel(companyId, companyName);
     if (!ServiceModel) throw new Error("Service collection not found for this company");
     for (const invoice of invoices) {
-        console.log('Invoice partyId:', invoice.partyId);
+
         const party = await PartyModel.findById(invoice.partyId);
-        console.log('Party found:', party);
+
         for (const s of invoice.services) {
-            console.log('ServiceId:', s.serviceId);
+
             const service = await ServiceModel.findById(s.serviceId);
-            console.log('Service found:', service);
+
         }
     }
-    return await InvoiceModel.find()
+      const invoiceList = await InvoiceModel.find()
       .populate({ path: "partyId", select: "partyName" })
       .populate({ path: "services.serviceId", select: "serviceName" });
+
+      console.log("Invoice List = ", invoiceList);
+    return invoiceList
+    
 }
 }
 

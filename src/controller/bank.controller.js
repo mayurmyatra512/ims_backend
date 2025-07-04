@@ -17,7 +17,7 @@ export default class BankController{
     async getBankById(req, res){
         try {
             const bankId = req.params.id;
-            const bank = await this.bankRepository.bankRepository(bankId);
+            const bank = await this.bankRepository.getBankById(bankId);
             res.status(200).json(bank);            
         } catch (error) {
             console.error("Error in Controller: ", error);

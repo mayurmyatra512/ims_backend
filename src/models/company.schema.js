@@ -37,6 +37,10 @@ const companySchema = new mongoose.Schema({
     maxEmailsAllowed: {
         type: Number,
     },
+    settingsId:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Setting"
+    },
     bankId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Bank",

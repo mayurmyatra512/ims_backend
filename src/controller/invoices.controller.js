@@ -90,7 +90,7 @@ export default class InvoicesController {
              const party = await PartyRepository.getPartyByName(
                 req.params.companyId,
                 companyName,
-                invoiceData.customer.name // Pass only the name string
+                invoiceData?.customer?.name // Pass only the name string
             );
             if (!party) {
                 return res.status(400).json({ message: "Party not found" });
@@ -101,8 +101,8 @@ export default class InvoicesController {
                     // console.log("Service = ", service)
                     return {
                         serviceId: new ObjectId(service._id),
-                        amount: item.price,
-                        vehicleNum: item.name || "",
+                        amount: item?.price,
+                        vehicleNum: item?.name || "",
                     };
                 })
             );
@@ -155,8 +155,9 @@ export default class InvoicesController {
     async getAllInvoices(req, res) {
         try {
             const companyName = await getCompanyNameById(req.params.companyId);
+            console.log("companyName while getting invoices = ", companyName)
             const invoices = await this.invoiceRepository.getAllInvoices(req.params.companyId, companyName);
-            console.log(invoices);
+            console.log("Invoices while getting invoices = ",invoices);
             res.status(200).json(invoices);
         } catch (error) {
             console.log("Error in Controller = ", error)

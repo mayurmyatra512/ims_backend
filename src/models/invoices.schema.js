@@ -9,7 +9,7 @@ const invoiceSchema = new mongoose.Schema({
     },
     partyId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "parties",
+        ref:  "Party",
         required: [true, "Please select a party"],
     },
     services: [

@@ -48,8 +48,9 @@ export default class DashboardRepository {
         }
         const InvoiceModelDb = companyDb.model('invoices');
         const result = await InvoiceModelDb.aggregate([
-            { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+            { $group: { _id: null, total: { $sum: "$paidAmount" } } }
         ]);
+        console.log("Result in repo: ",result);
         return result[0]?.total || 0;
     }
     async getRecentInvoices(companyId, companyName, limit = 5) {

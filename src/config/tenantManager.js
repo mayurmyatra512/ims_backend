@@ -11,6 +11,7 @@ import PartyModel from "../models/parties.schema.js";
 import ServiceModel from "../models/services.schema.js";
 import UserModel from "../models/user.schema.js";
 import CounterModel from '../models/counter.schema.js';
+import SettingModel from "../models/settings.schema.js";
 // If you have dashboard.schema.js, import it similarly
 // import DashboardModel from "../models/dashboard.schema.js";
 
@@ -49,6 +50,7 @@ export async function registerCompany(companyData) {
     companyDb.model(`Service`, ServiceModel.schema, 'services');
     // Register Counter model for company DBs
     companyDb.model('Counter', CounterModel.schema, 'counters');
+    companyDb.model('Setting', SettingModel.schema, 'settings');
     // Do NOT create users, company, or bank models in company DBs
     return { companyId, companyName };
 }
