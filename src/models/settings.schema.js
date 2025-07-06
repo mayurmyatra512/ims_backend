@@ -18,25 +18,9 @@ const settingSchema = new mongoose.Schema({
     },
     currency: {
         type: String, 
+        enum: ["₹", "$", "£"]
     },
-    IGST: {
-        type: Number,
-        required: function () {
-            return this.companyTax === "GST";
-        },
-    },
-    CGST: {
-        type: Number,
-        required: function () {
-            return this.companyTax === "GST";
-        },
-    },
-    SGST: {
-        type: Number,
-        required: function () {
-            return this.companyTax === "GST";
-        },
-    }
+
 });
 
 const SettingModel = mongoose.model("Setting", settingSchema, "settings");

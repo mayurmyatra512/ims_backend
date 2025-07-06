@@ -9,6 +9,12 @@ function getCompanyDb(companyId, companyName) {
     return mongoose.connection.useDb(dbName, { useCache: true });
 }
 
+function registerModelIfMissing(companyDb, modelName, schema, collectionName) {
+    if (!companyDb.models[modelName]) {
+        companyDb.model(modelName, schema, collectionName);
+    }
+}
+
 export default class DashboardRepository {
     getDashboardModel(companyId, companyName) {
         const companyDb = getCompanyDb(companyId, companyName);
@@ -41,43 +47,55 @@ export default class DashboardRepository {
         const ServiceModelDb = companyDb.model('services');
         return await ServiceModelDb.countDocuments();
     }
+
+
+    // async getTotalRevenue(companyId, companyName) {
+    //     const companyDb = getCompanyDb(companyId, companyName);
+    //     if (!companyDb.modelNames().includes('invoices')) {
+    //         companyDb.model('invoices', InvoiceModel.schema);
+    //     }
+    //     const InvoiceModelDb = companyDb.model('invoices');
+
+    //     const invoices = await InvoiceModelDb.find()
+    //         .populate("partyId");
+
+    //     invoices.forEach(inv => {
+    //         if (!inv.partyId) {
+    //             console.log("Failed to populate for:", inv._id);
+    //         }
+    //     });
+
+    //     const result = await InvoiceModelDb.aggregate([
+    //         { $group: { _id: null, total: { $sum: "$paidAmount" } } }
+    //     ]);
+    //     console.log("Result in repo: ", result);
+    //     return result[0]?.total || 0;
+    // }
+
     async getTotalRevenue(companyId, companyName) {
         const companyDb = getCompanyDb(companyId, companyName);
-        if (!companyDb.modelNames().includes('invoices')) {
-            companyDb.model('invoices', InvoiceModel.schema);
-        }
-        const InvoiceModelDb = companyDb.model('invoices');
+        registerModelIfMissing(companyDb, 'Invoice', InvoiceModel.schema, 'invoices');
+
+        const InvoiceModelDb = companyDb.model('Invoice');
         const result = await InvoiceModelDb.aggregate([
             { $group: { _id: null, total: { $sum: "$paidAmount" } } }
         ]);
-        console.log("Result in repo: ",result);
+        
         return result[0]?.total || 0;
     }
+
+
     async getRecentInvoices(companyId, companyName, limit = 5) {
         const companyDb = getCompanyDb(companyId, companyName);
-        // console.log(companyDb)
-        if (!companyDb.modelNames().includes('invoices')) {
-            companyDb.model('invoices', InvoiceModel.schema);
-        }
+        registerModelIfMissing(companyDb, 'Invoice', InvoiceModel.schema, 'invoices');
+        registerModelIfMissing(companyDb, 'Party', PartyModel.schema, 'parties');
 
-        // Dynamically register Party model if not registered
-        if (!companyDb.models["parties"]) {
-            companyDb.model("parties", require("../models/PartyModel").schema); // Adjust path if needed
-        }
-
-        // Dynamically register Invoice model if not registered
-        if (!companyDb.models["invoices"]) {
-            companyDb.model("invoices", require("../models/InvoiceModel").schema); // Adjust path if needed
-        }
-
-        const InvoiceModelDb = companyDb.model('invoices');
-        console.log(InvoiceModel)
+        const InvoiceModelDb = companyDb.model('Invoice');
         const invoices = await InvoiceModelDb.find()
             .populate({ path: "partyId", select: "partyName" })
             .sort({ invoiceDate: -1 })
-            .limit(limit)
-        // .populate({ path: "partyId", select: "partyName" });
-        console.log("Invoices = ", invoices)
+            .limit(limit);
+
         return invoices.map(inv => ({
             _id: inv._id,
             invoiceNumber: inv.invoiceNumber,
@@ -86,4 +104,39 @@ export default class DashboardRepository {
             totalAmount: inv.totalAmount
         }));
     }
+
+
+    // async getRecentInvoices(companyId, companyName, limit = 5) {
+    //     const companyDb = getCompanyDb(companyId, companyName);
+    //     // console.log(companyDb)
+    //     if (!companyDb.modelNames().includes('invoices')) {
+    //         companyDb.model('invoices', InvoiceModel.schema);
+    //     }
+
+    //     // Dynamically register Party model if not registered
+    //     if (!companyDb.models["parties"]) {
+    //         companyDb.model("parties", require("../models/PartyModel").schema); // Adjust path if needed
+    //     }
+
+    //     // Dynamically register Invoice model if not registered
+    //     if (!companyDb.models["invoices"]) {
+    //         companyDb.model("invoices", require("../models/InvoiceModel").schema); // Adjust path if needed
+    //     }
+
+    //     const InvoiceModelDb = companyDb.model('invoices');
+    //     console.log(InvoiceModel)
+    //     const invoices = await InvoiceModelDb.find()
+    //         .populate({ path: "partyId", select: "partyName" })
+    //         .sort({ invoiceDate: -1 })
+    //         .limit(limit)
+    //     // .populate({ path: "partyId", select: "partyName" });
+    //     console.log("Invoices = ", invoices)
+    //     return invoices.map(inv => ({
+    //         _id: inv._id,
+    //         invoiceNumber: inv.invoiceNumber,
+    //         partyId: inv.partyId ? { partyName: inv.partyId.partyName } : null,
+    //         date: inv.invoiceDate,
+    //         totalAmount: inv.totalAmount
+    //     }));
+    // }
 }
