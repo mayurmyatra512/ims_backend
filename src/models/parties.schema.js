@@ -19,6 +19,12 @@ const partySchema = new mongoose.Schema({
     type: String,
     // required: [true, "Please enter the party address"],
   },
+  gstin: {
+    type: String,
+  },
+  pan: {
+    type: String,
+  },
   contactNumber: {
     type: String,
     required: [true, "Please enter the party contact number"],
