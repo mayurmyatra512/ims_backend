@@ -8,11 +8,11 @@ export default class ServicesController {
     async createService(req, res) {
         try {
             const serviceData = req.body;
-            console.log("Service Data: ", serviceData);
+            // console.log("Service Data: ", serviceData);
             const companyName = await getCompanyNameById(req.params.companyId);
-            console.log("Company Name: ", companyName);
+            // console.log("Company Name: ", companyName);
             const service = await ServiceService.createService(req.params.companyId, companyName, serviceData);
-            console.log("Service Created: ", service);
+            // console.log("Service Created: ", service);
             res.status(201).json(service);
         } catch (error) {
             res.status(500).json({ message: error.message });

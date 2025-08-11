@@ -12,6 +12,7 @@ import ServiceModel from "../models/services.schema.js";
 import UserModel from "../models/user.schema.js";
 import CounterModel from '../models/counter.schema.js';
 import SettingModel from "../models/settings.schema.js";
+import { ItemModel,CategoryModel, SubcategoryModel } from "../models/items.schema.js";
 // If you have dashboard.schema.js, import it similarly
 // import DashboardModel from "../models/dashboard.schema.js";
 
@@ -48,6 +49,11 @@ export async function registerCompany(companyData) {
     companyDb.model(`Invoice`, InvoiceModel.schema, `invoices`);
     companyDb.model(`Party`, PartyModel.schema, 'parties');
     companyDb.model(`Service`, ServiceModel.schema, 'services');
+    companyDb.model('Item', ItemModel.schema, 'items');
+    companyDb.model('Category', CategoryModel.schema, 'categories');
+    companyDb.model('Subcategory', SubcategoryModel.schema, 'subcategories');
+    
+
     // Register Counter model for company DBs
     companyDb.model('Counter', CounterModel.schema, 'counters');
     companyDb.model('Setting', SettingModel.schema, 'settings');
@@ -63,7 +69,8 @@ export function getCompanyModel(companyId, type) {
         invoice: InvoiceModel.schema,
         parties: PartyModel.schema,
         services: ServiceModel.schema,
-        user: UserModel.schema
+        user: UserModel.schema,
+        item: ItemModel.schema,
     };
     if (!modelMap[type]) throw new Error("Invalid collection type");
     return companyDb.model(`${type}_${companyId}`, modelMap[type]);
