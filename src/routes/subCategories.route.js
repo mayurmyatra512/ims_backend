@@ -4,10 +4,11 @@ import authMiddleware from "../middleware/auth.js";
 import SubCategoriesController from "../controller/subCategories.controller.js";
 
 const subcategoriesRouter = Router();
-subcategoriesRouter.post("/", authMiddleware, (req, res) => SubCategoriesController.createSubcategory(req, res));
-subcategoriesRouter.get("/:id", authMiddleware, (req, res) => SubCategoriesController.getSubcategoryById(req, res));
-subcategoriesRouter.put("/:id", authMiddleware, (req, res) => SubCategoriesController.updateSubcategory(req, res));
-subcategoriesRouter.delete("/:id", authMiddleware, (req, res) => SubCategoriesController.deleteSubcategory(req, res));
-subcategoriesRouter.get("/", authMiddleware, (req, res) => SubCategoriesController.getAllSubcategories(req, res));
+const subCategoriesController = new SubCategoriesController();
+subcategoriesRouter.post("/:companyId", authMiddleware, (req, res) => subCategoriesController.createSubcategory(req, res));
+subcategoriesRouter.put("/:companyId/:id", authMiddleware, (req, res) => subCategoriesController.updateSubcategory(req, res));
+subcategoriesRouter.delete("/:companyId/:id", authMiddleware, (req, res) => subCategoriesController.deleteSubcategory(req, res));
+subcategoriesRouter.get("/:companyId/:id", authMiddleware, (req, res) => subCategoriesController.getSubcategoryById(req, res));
+subcategoriesRouter.get("/:companyId", authMiddleware, (req, res) => subCategoriesController.getAllSubcategories(req, res));
 
 export default subcategoriesRouter;

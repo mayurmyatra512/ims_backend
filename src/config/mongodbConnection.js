@@ -1,4 +1,5 @@
 // import mongoose from "mongoose";
+// import { registerMasterSchemas } from "./tenantManager.js";
 
 // const clientOptions = { serverApi: { version: '1', strict: true, deprecationErrors: true } };
 
@@ -27,6 +28,7 @@
 
 
 import mongoose from "mongoose";
+import { registerMasterSchemas } from "./tenantManager.js";
 
 const clientOptions = { serverApi: { version: '1', strict: true, deprecationErrors: true } };
 
@@ -42,6 +44,8 @@ const connectToMongoDB = async () => {
         await mongoose.connect(uri, clientOptions);
         await mongoose.connection.db.admin().command({ ping: 1 });
         console.log(`Connected to MongoDB master database: ${dbName}`);
+        // Register master schemas after successful connection
+        registerMasterSchemas();
     } catch (error) {
         console.error("Error connecting to MongoDB:", error);
         process.exit(1); // Exit the process with failure

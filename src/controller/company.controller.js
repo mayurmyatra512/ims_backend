@@ -12,10 +12,11 @@ export default class CompayController{
             const company = await this.companyRepository.createCompany(companyData);
             console.log("Company created: ", company);
             // Register tenant collections after company is created
-            await registerCompany({
+            const registrationResult = await registerCompany({
                 companyId: company._id.toString(),
                 companyName: company.companyName
             });
+            console.log("Tenant registration result: ", registrationResult);
             res.status(201).json(company);
         } catch (error) {
             console.error("Error in Controller: ", error);

@@ -29,6 +29,25 @@ export default class ItemsController {
         }
     }
 
+    static async getAllItems(req, res) {
+        try {
+            const companyId = req.params.companyId;
+            const companyName = await getCompanyNameById(companyId);
+
+            const filter = req.query || {};
+            const items = await ItemRepository.getAllItems(companyId, companyName, filter);
+
+            return res.status(200).json({
+                success: true,
+                message: "Items fetched successfully",
+                data: items,
+            });
+        } catch (error) {
+            console.error("❌ getAllItems error:", error);
+            return res.status(500).json({ success: false, message: error.message });
+        }
+    }
+
     async updateItem(req, res) {
         try {
             const itemId = req.params.id;
@@ -54,16 +73,17 @@ export default class ItemsController {
         }
     }
 
-    async getAllItems(req, res) {
-        try {
-            const companyId = req.params.companyId;
-            const companyName = await getCompanyNameById(companyId);
-            const items = await ItemRepository.getAllItems(companyId, companyName);
-            res.status(200).json(items);
-        } catch (error) {
-            res.status(500).json({ message: error.message });
-        }
-    }
+    // async getAllItems(req, res) {
+    //     try {
+    //         const companyId = req.params.companyId;
+    //         const companyName = await getCompanyNameById(companyId);
+    //         const items = await ItemRepository.getAllItems(companyId, companyName);
+    //         res.status(200).json(items);
+    //     } catch (error) {
+    //         res.status(500).json({ message: error.message });
+    //     }
+    // }
+    
     async getItemByName(req, res) {
         try {
             const itemName = req.params.name;

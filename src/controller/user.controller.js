@@ -108,11 +108,13 @@ export default class UserController {
     async login(req, res){
         try {
             const { email, password } = req.body;
+            console.log("Login attempt for email: ", email, password ? "with password" : "without password");
             const user = await this.userRepository.login(email, password);
             console.log("User logged in: ", user);
             // Generate token (if needed)
             const token = await tokenGeneration(user._id, user.companyId);
             // Set token in cookie (httpOnly for security)
+            
             res.cookie('token', token, {
                 httpOnly: true,
                 sameSite: 'lax',

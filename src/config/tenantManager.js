@@ -13,6 +13,8 @@ import UserModel from "../models/user.schema.js";
 import CounterModel from '../models/counter.schema.js';
 import SettingModel from "../models/settings.schema.js";
 import { ItemModel,CategoryModel, SubcategoryModel } from "../models/items.schema.js";
+import { ItemBatchModel } from "../models/itemBatch.schema.js";
+import items from "razorpay/dist/types/items.js";
 // If you have dashboard.schema.js, import it similarly
 // import DashboardModel from "../models/dashboard.schema.js";
 
@@ -31,6 +33,9 @@ export function registerMasterSchemas() {
 // Helper to get a DB connection for a company
 function getCompanyDb(companyId, companyName) {
     console.log(`Using companyId: ${companyId}, companyName: ${companyName}`);
+    if(!companyId || !companyName) {
+        throw new Error("Invalid companyId or companyName");
+    }
     // Format: companyname (lowercase, no spaces) + companyId
     let dbCompanyName = companyName ? companyName.toLowerCase().replace(/\s+/g, "") : "company";
     const dbName = `${dbCompanyName}_${companyId}`;
@@ -42,6 +47,9 @@ export async function registerCompany(companyData) {
     console.log("Registering company:", companyData);
     const companyId = companyData.companyId || uuidv4();
     const companyName = companyData.companyName || `company_${companyId}`;
+    if (!companyId || !companyName) {
+        throw new Error("Invalid companyId or companyName");
+    }
     // Get DB for this company
     const companyDb = getCompanyDb(companyId, companyName);
     // Only create these schemas in the company-specific DB
@@ -50,6 +58,7 @@ export async function registerCompany(companyData) {
     companyDb.model(`Party`, PartyModel.schema, 'parties');
     companyDb.model(`Service`, ServiceModel.schema, 'services');
     companyDb.model('Item', ItemModel.schema, 'items');
+    companyDb.model("ItemBatch", ItemBatchModel.schema, "item_batches");
     companyDb.model('Category', CategoryModel.schema, 'categories');
     companyDb.model('Subcategory', SubcategoryModel.schema, 'subcategories');
     
@@ -69,6 +78,10 @@ export function getCompanyModel(companyId, type) {
         invoice: InvoiceModel.schema,
         parties: PartyModel.schema,
         services: ServiceModel.schema,
+        items: ItemModel.schema,
+        categories: CategoryModel.schema,
+        subcategories: SubcategoryModel.schema,
+        itemBatches: ItemBatchModel.schema,
         user: UserModel.schema,
         item: ItemModel.schema,
     };

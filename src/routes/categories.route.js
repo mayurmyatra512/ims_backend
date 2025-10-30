@@ -1,13 +1,15 @@
-import CategoriesController from "../controller/categories.controller.js";
+
 import { Router } from "express";
 import authMiddleware from "../middleware/auth.js";
+import CategoriesController from "../controller/categories.controller.js";
 
+const categoriesController = new CategoriesController();
 const categoriesRouter = Router();
 
-categoriesRouter.post("/", authMiddleware, (req, res) => CategoriesController.createCategory(req, res));
-categoriesRouter.get("/:id", authMiddleware, (req, res) => CategoriesController.getCategoryById(req, res));
-categoriesRouter.put("/:id", authMiddleware, (req, res) => CategoriesController.updateCategory(req, res));
-categoriesRouter.delete("/:id", authMiddleware, (req, res) => CategoriesController.deleteCategory(req, res));
-categoriesRouter.get("/", authMiddleware, (req, res) => CategoriesController.getAllCategories(req, res));
+categoriesRouter.post("/:companyId", authMiddleware, (req, res) => categoriesController.createCategory(req, res));
+categoriesRouter.put("/:companyId/:id", authMiddleware, (req, res) => categoriesController.updateCategory(req, res));
+categoriesRouter.delete("/:companyId/:id", authMiddleware, (req, res) => categoriesController.deleteCategory(req, res));
+categoriesRouter.get("/:companyId/:id", authMiddleware, (req, res) => categoriesController.getCategoryById(req, res));
+categoriesRouter.get("/:companyId", authMiddleware, (req, res) => categoriesController.getAllCategories(req, res));
 
 export default categoriesRouter;

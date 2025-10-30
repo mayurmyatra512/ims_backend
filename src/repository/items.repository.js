@@ -19,56 +19,70 @@ export default class ItemRepository {
     return companyDb.model('Item');
   }
 
-  static async createItem(companyId, companyName, itemData) {
+  static async createItem(companyId, companyName, data) {
     const ItemModel = this.getItemModel(companyId, companyName);
     if (!ItemModel) throw new Error("Item collection not found for this company");
-    const item = new ItemModel(itemData);
+    return await ItemModel.create(data);
+  }
+
+  static async getAllItems(companyId, companyName, filters = {}, populate = false) {
+    const ItemModel = this.getItemModel(companyId, companyName);
+    if (!ItemModel) throw new Error("Item collection not found for this company");
+    const query = ItemModel.find(filters).sort({ createdAt: -1 });
+    if (populate) {
+      query
+        .populate("category", "name code")
+        .populate("brand", "name")
+        .populate("supplierId", "name");
+    }
+    return await query.exec();
+  }
+
+  static async getItemById(companyId, companyName, id, populate = false) {
+    const ItemModel = this.getItemModel(companyId, companyName);
+    if (!ItemModel) throw new Error("Item collection not found for this company");
+    const query = ItemModel.findById(id);
+    if (populate) {
+      query
+        .populate("category", "name code")
+        .populate("brand", "name")
+        .populate("supplierId", "name");
+    }
+    return await query.exec();
+  }
+
+  static async getItemByCode(companyId, companyName, itemCode) {
+    const ItemModel = this.getItemModel(companyId, companyName);
+    if (!ItemModel) throw new Error("Item collection not found for this company");
+    return await ItemModel.findOne({ itemCode });
+  }
+
+  static async updateItem(companyId, companyName, id, updateData) {
+    const ItemModel = this.getItemModel(companyId, companyName);
+    if (!ItemModel) throw new Error("Item collection not found for this company");
+    return await ItemModel.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    });
+  }
+
+  static async deleteItem(companyId, companyName, id, softDelete = true) {
+    const ItemModel = this.getItemModel(companyId, companyName);
+    if (!ItemModel) throw new Error("Item collection not found for this company");
+    if (softDelete) {
+      return await ItemModel.findByIdAndUpdate(id, { isDeleted: true }, { new: true });
+    }
+    return await ItemModel.findByIdAndDelete(id);
+  }
+
+  static async adjustStock(companyId, companyName, itemId, qtyChange) {
+    const ItemModel = this.getItemModel(companyId, companyName);
+    if (!ItemModel) throw new Error("Item collection not found for this company");
+    const item = await ItemModel.findById(itemId);
+    if (!item) throw new Error("Item not found");
+    item.availableQty = Math.max(0, item.availableQty + qtyChange);
     return await item.save();
   }
-
-  static async getItemById(companyId, companyName, itemId) {
-    const ItemModel = this.getItemModel(companyId, companyName);
-    if (!ItemModel) throw new Error("Item collection not found for this company");
-    return await ItemModel.findById(itemId).populate("categoryId", "name").populate("subcategoryId", "name");
-  }
-
-  static async updateItem(companyId, companyName, itemId, itemData) {
-    const ItemModel = this.getItemModel(companyId, companyName);
-    if (!ItemModel) throw new Error("Item collection not found for this company");
-    const item = await ItemModel.findByIdAndUpdate(
-      itemId,
-      { ...itemData, updatedAt: new Date() },
-      { new: true, runValidators: true }
-    );
-    if (!item) throw new Error(`Item with ID ${itemId} not found`);
-    return item;
-  }
-
-  static async deleteItem(companyId, companyName, itemId) {
-    const ItemModel = this.getItemModel(companyId, companyName);
-    if (!ItemModel) throw new Error("Item collection not found for this company");
-    const item = await ItemModel.findByIdAndUpdate(itemId, { isDeleted: true }, { new: true });
-    if (!item) throw new Error(`Item with ID ${itemId} not found`);
-    return item;
-  }
-
-  static async getAllItems(companyId, companyName, filter = {}) {
-    const ItemModel = this.getItemModel(companyId, companyName);
-    if (!ItemModel) throw new Error("Item collection not found for this company");
-    return await ItemModel.find(filter).populate("categoryId", "name")
-      .populate("subcategoryId", "name");
-  }
-
-  static async getItemByName(companyId, companyName, itemName) {
-    const ItemModel = this.getItemModel(companyId, companyName);
-    if (!ItemModel) throw new Error("Item collection not found for this company");
-    // Use regex to find item by name (case-insensitive)
-    return await ItemModel.findOne({
-      name: { $regex: `^${itemName.trim()}$`, $options: "i" }
-    })
-      .populate({ path: 'category', select: 'name' })
-      .populate({ path: 'subcategory', select: 'name' })
-      .populate({ path: 'supplier', select: 'name contactInfo email phone' });
-  }
-
 }
+
+
