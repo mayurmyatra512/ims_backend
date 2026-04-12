@@ -4,12 +4,16 @@ import { getCompanyNameById } from "../utils/companyNameUtil.js";
 export default class BrandsController {
     async createBrand(req, res) {
         try {
+            console.log("Data =", req.body);
             const brandData = req.body;
             const companyId = req.params.companyId;
+
             const companyName = await getCompanyNameById(companyId);
+            console.log("Brand Data :", brandData, "Company ID:", companyId, "Company Name:", companyName);
             const brand = await BrandRepository.createBrand(companyId, companyName, brandData);
             res.status(201).json(brand);
         } catch (error) {
+            console.error("Error creating brand:", error);
             res.status(500).json({ message: error.message });
         }
     }
@@ -54,12 +58,13 @@ export default class BrandsController {
         }
     }
 
-    async getAllCategories(req, res) {
+    async getAllBrands(req, res) {
         try {
             const companyId = req.params.companyId;
             const companyName = await getCompanyNameById(companyId);
-            const categories = await BrandRepository.getAllCategories(companyId, companyName);
-            res.status(200).json(categories);
+            const brands = await BrandRepository.getAllBrands(companyId, companyName);
+            console.log("Fetched Brands:", brands);
+            res.status(200).json(brands);
         } catch (error) {
             res.status(500).json({ message: error.message });
         }

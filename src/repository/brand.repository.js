@@ -29,13 +29,20 @@ export default class BrandRepository {
   static async getByBrandId(companyId, companyName, id) {
     return await this.getBrandModel(companyId, companyName)
       .findById(id)
-      .populate("parentId", "name");
   }
 
   static async getAllBrands(companyId, companyName, filter = {}) {
-    return await this.getBrandModel(companyId, companyName)
+    try {
+      const resp = await this.getBrandModel(companyId, companyName)
       .find(filter)
-      .populate("parentId", "name");
+      .sort({ createdAt: -1 });
+      console.log("Brands fetched from DB:", resp);
+    return resp;
+    } catch (error) {
+      console.error("❌ Error fetching brands:", error);
+      throw error;
+    }
+    
   }
 
   static async updateBrand(companyId, companyName, id, data) {

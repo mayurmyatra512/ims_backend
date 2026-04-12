@@ -31,19 +31,25 @@ const invoiceSchema = new mongoose.Schema({
     ],
     items: [
         {
-            itemName: {
-                type: String,
-                // required: true,
+            itemId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Item",
+                required: true,
                 trim: true,
             },
             itemQuantity: {
                 type: Number,
-                // required: true,
+                required: true,
                 min: 1,
             },
             itemPrice: {
                 type: Number,
-                // required: true,
+                required: true,
+                min: 0,
+            },
+            total: {
+                type: Number,
+                required: true,
                 min: 0,
             },
         },
@@ -116,11 +122,12 @@ invoiceSchema.pre("validate", async function (next) {
         }
 
         if (companyType === "Both") {
-            if (!invoice.services || invoice.services.length === 0) {
-                invoice.invalidate("services", "Services are required when company type is Both.");
-            }
-            if (!invoice.items || invoice.items.length === 0) {
-                invoice.invalidate("items", "Items are required when company type is Both.");
+            const hasServices = invoice.services && invoice.services.length > 0;
+            const hasItems = invoice.items && invoice.items.length > 0;
+            if (!hasServices && !hasItems) {
+                const message = "At least one service or item is required when company type is Both.";
+                invoice.invalidate("services", message);
+                invoice.invalidate("items", message);
             }
         }
 
@@ -134,7 +141,8 @@ invoiceSchema.pre("validate", async function (next) {
 // Calculate totalAmount before saving or updating
 invoiceSchema.pre("save", function (next) {
     let servicesTotal = (this.services || []).reduce((sum, s) => sum + s.amount, 0);
-    let itemsTotal = (this.items || []).reduce((sum, i) => sum + (i.price * i.quantity), 0);
+    let itemsTotal = (this.items || []).reduce((sum, i) => sum + (i.itemPrice * i.itemQuantity), 0);
+    console.log("Calculating totalAmount - Services Total:", servicesTotal, "Items Total:", itemsTotal);
     servicesTotal = isNaN(Number(servicesTotal)) ? 0 : Number(servicesTotal)
     itemsTotal = isNaN(Number(itemsTotal)) ? 0 : Number(itemsTotal)
     this.totalAmount = servicesTotal + itemsTotal;
@@ -148,7 +156,7 @@ invoiceSchema.pre("findOneAndUpdate", function (next) {
     if (update.services || update.items) {
         let servicesTotal = (update.services || []).reduce((sum, s) => sum + s.amount, 0);
         console.log("ServiceTotal :", servicesTotal);
-        let itemsTotal = (update.items || []).reduce((sum, i) => sum + (i.price * i.quantity), 0);
+        let itemsTotal = (update.items || []).reduce((sum, i) => sum + (i.itemPrice * i.itemQuantity), 0);
         servicesTotal = isNaN(Number(servicesTotal)) ? 0 : Number(servicesTotal)
         itemsTotal = isNaN(Number(itemsTotal)) ? 0 : Number(itemsTotal)
         // console.log("itemsTotal :", isNaN(Number(itemsTotal)) ? 0 : Number(itemsTotal));
@@ -163,7 +171,7 @@ invoiceSchema.pre("updateMany", function (next) {
     const update = this.getUpdate();
     if (update.services || update.items) {
         let servicesTotal = (update.services || []).reduce((sum, s) => sum + s.amount, 0);
-        let itemsTotal = (update.items || []).reduce((sum, i) => sum + (i.price * i.quantity), 0);
+        let itemsTotal = (update.items || []).reduce((sum, i) => sum + (i.itemPrice * i.itemQuantity), 0);
         servicesTotal = isNaN(Number(servicesTotal)) ? 0 : Number(servicesTotal)
         itemsTotal = isNaN(Number(itemsTotal)) ? 0 : Number(itemsTotal)
         update.totalAmount = servicesTotal + itemsTotal;
@@ -172,6 +180,23 @@ invoiceSchema.pre("updateMany", function (next) {
     this.setUpdate(update);
     next();
 });
+
+// invoiceSchema.post("findById", async function (doc, next) {
+//     if (doc.items && doc.items.length > 0) {
+//         const Item = mongoose.model("Item");
+//         for (const item of doc.items) {
+//             if (item.itemId) {
+//                 const itemData = await Item.findById(item.itemId).select("name");
+//                 if (itemData) {
+//                     item.name = itemData.name;
+//                 }
+//             }
+//         }
+//     }
+//     next();
+// });
+
+
 
 
 // Ensure that the invoiceNumber is unique

@@ -1,4 +1,4 @@
-import { ItemBatchRepository } from "../repositories/itemBatch.repository.js";
+import { ItemBatchRepository } from "../repository/itemsBatch.repository.js";
 import { getCompanyNameById } from "../utils/companyNameUtil.js";
 
 
@@ -29,7 +29,7 @@ export class ItemBatchController {
     /**
      * Get all batches
      */
-    static async getAllBatches(req, res) {
+     async getAllBatches(req, res) {
         try {
              const companyId = req.params.companyId;
             const companyName = await getCompanyNameById(companyId);

@@ -1,5 +1,5 @@
 import { ItemBatchModel } from "../models/itemBatch.schema.js";
-
+import mongoose from "mongoose";
 /**
  * =============================================
  * ITEM BATCH REPOSITORY

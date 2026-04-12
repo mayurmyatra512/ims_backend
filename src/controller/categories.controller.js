@@ -5,11 +5,14 @@ export default class CategoriesController {
     async createCategory(req, res) {
         try {
             const categoryData = req.body;
+            console.log("Received category data:", categoryData);
             const companyId = req.params.companyId;
             const companyName = await getCompanyNameById(companyId);
             const category = await CategoryRepository.createCategory(companyId, companyName, categoryData);
+            console.log("Created Category:", category);
             res.status(201).json(category);
         } catch (error) {
+            console.error("Error creating category:", error);
             res.status(500).json({ message: error.message });
         }
     }

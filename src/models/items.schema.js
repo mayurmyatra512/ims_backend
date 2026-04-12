@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
-import { trim } from "validator";
+import validator from "validator";
+const { trim } = validator;
 // import documents from "razorpay/dist/types/documents";
 // import qrCode from "razorpay/dist/types/qrCode";
 
@@ -315,20 +316,28 @@ const itemSchema = new mongoose.Schema(
     },
     sku: {
       type: String,
-      unique: true,
       sparse: true,
+      unique: true,
       trim: true,
     },
+    // category: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "Category",
+    //   required: [true, "Category is required"],
+    //   trim: true,
+    // },
+    // brand: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "Brand",
+    //   required: [true, "Brand is required"],
+    // },
     category: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Category",
-      required: [true, "Category is required"],
-      trim: true,
+        type: String,
+        trim: true,
     },
     brand: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Brand",
-      required: [true, "Brand is required"],
+        type: String,
+        trim: true,
     },
     description: {
       type: String,
@@ -350,12 +359,12 @@ const itemSchema = new mongoose.Schema(
     // ------------------ INVENTORY SUMMARY ------------------
     totalQty: {
       type: Number,
-      required: [true, "Total quantity is required"],
+      required: [true, "Totals quantity is required"],
       min: [0, "Total quantity cannot be negative"],
     },
     availableQty: {
       type: Number,
-      required: [true, "Available quantity is required"],
+    //   required: [true, "Available quantity is required"],
       min: [0, "Available quantity cannot be negative"],
     },
     unitOfMeasure: {
@@ -437,7 +446,7 @@ const categorySchema = new mongoose.Schema({
         type: [String],
         default: [],
     },
-    sooslug: {
+    seoSlug: {
         type: String,
         required: [true, "Please enter the category slug"],
         unique: true,

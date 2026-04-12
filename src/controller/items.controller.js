@@ -5,11 +5,14 @@ export default class ItemsController {
     async createItem(req, res) {
         try {
             const itemData = req.body;
+            console.log("Received item data:", itemData);
             const companyId = req.params.companyId;
             const companyName = await getCompanyNameById(companyId);
             const item = await ItemRepository.createItem(companyId, companyName, itemData);
+            console.log("Created Item:", item);
             res.status(201).json(item);
         } catch (error) {
+            console.error("Error creating item:", error);
             res.status(500).json({ message: error.message });
         }
     }
@@ -48,18 +51,18 @@ export default class ItemsController {
         }
     }
 
-    async updateItem(req, res) {
-        try {
-            const itemId = req.params.id;
-            const itemData = req.body;
-            const companyId = req.params.companyId;
-            const companyName = await getCompanyNameById(companyId);
-            const updatedItem = await ItemRepository.updateItem(companyId, companyName, itemId, itemData);
-            res.status(200).json(updatedItem);
-        } catch (error) {
-            res.status(500).json({ message: error.message });
+        async updateItem(req, res) {
+            try {
+                const itemId = req.params.id;
+                const { itemCode, sku, ...safeItemData } = req.body;
+                const companyId = req.params.companyId;
+                const companyName = await getCompanyNameById(companyId);
+                const updatedItem = await ItemRepository.updateItem(companyId, companyName, itemId, safeItemData);
+                res.status(200).json(updatedItem);
+            } catch (error) {
+                res.status(500).json({ message: error.message });
+            }
         }
-    }
 
     async deleteItem(req, res) {
         try {
@@ -73,16 +76,17 @@ export default class ItemsController {
         }
     }
 
-    // async getAllItems(req, res) {
-    //     try {
-    //         const companyId = req.params.companyId;
-    //         const companyName = await getCompanyNameById(companyId);
-    //         const items = await ItemRepository.getAllItems(companyId, companyName);
-    //         res.status(200).json(items);
-    //     } catch (error) {
-    //         res.status(500).json({ message: error.message });
-    //     }
-    // }
+    async getAllItems(req, res) {
+        try {
+            const companyId = req.params.companyId;
+            const companyName = await getCompanyNameById(companyId);
+            const items = await ItemRepository.getAllItems(companyId, companyName);
+            console.log("Fetched Items:", items);
+            res.status(200).json(items);
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    }
     
     async getItemByName(req, res) {
         try {
